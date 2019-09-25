@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+#customed
+/cs224n
+/d2l
+
