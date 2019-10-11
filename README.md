@@ -1,2 +1,2 @@
-# nlp_beginning
-nlp入门
+# NNTranSegmentor
+Undergraduate graduation project ---- Chinese Word Segmentation
