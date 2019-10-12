@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/11 16:48
 # @File : preprocess.py
-# @Last Modify Time : 2019/10/12 19:46
+# @Last Modify Time : 2019/10/12 20:16
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 import argparse
@@ -13,16 +13,16 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Data Preprocess")
     parser.add_argument("-o", "--output", dest="output_file", type=str, required=True, help="config_file path")
     parser.add_argument("--train", dest="train", type=str, required=True, help="path of train text")
-    parser.add_argument("--dev", dest="dev", type=str, help="path of dev text")
+    parser.add_argument("--dev", dest="dev", type=str, required=True, help="path of dev text")
     parser.add_argument("--test", dest="test", type=str, required=True, help="path of test text")
-    parser.add_argument("--min_fre", type=int, required=True, help="the smallest word frequency in the vocab")
+    # parser.add_argument("--min_fre", type=int, required=True, help="the smallest word frequency in the vocab")
     args = parser.parse_args()
 
     config = MyConf("./config/config.cfg")
     return args, config
 
 
-def build_vocab(word2id, id2word, args):
+def build_vocab(word2id, id2word, args, config):
     print("Start to build vocab...")
     id_ = 1
     dic = {}
@@ -33,7 +33,7 @@ def build_vocab(word2id, id2word, args):
             for char in line:
                 dic[char] = dic[char]+1 if char in dic else 0
     for char in dic:
-        if dic[char] >= args.min_fre:
+        if dic[char] >= config.min_fre:
             word2id[char] = id_
             id2word.append(char)
             id_ += 1
@@ -71,7 +71,7 @@ def make_dataset(args, config):
     word2id = {"OOVid": 0}
     id2word = ["OOVid"]
     data = {}
-    build_vocab(word2id, id2word, args)
+    build_vocab(word2id, id2word, args, config)
     data["train"] = convert_insts(args.train, word2id, "train", config)
     if args.dev is not None:
         data["dev"] = convert_insts(args.dev, word2id, "dev", config)
