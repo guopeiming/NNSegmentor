@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/11 16:48
 # @File : preprocess.py
-# @Last Modify Time : 2019/10/11 16:48
+# @Last Modify Time : 2019/10/12 19:46
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 import argparse
@@ -43,6 +43,7 @@ def build_vocab(word2id, id2word, args):
 
 def convert_insts(filename, word2id, type_, config):
     print("Start to convert %s text data..." % type_)
+    assert config.SEP == 1 and config.APP == 0, "SEP and APP can not be changed."
     insts = []
     golds = []
     with open(filename, mode="r", encoding="utf-8") as reader:
@@ -66,6 +67,7 @@ def convert_insts(filename, word2id, type_, config):
 
 
 def make_dataset(args, config):
+    assert config.OOVid == 0, "OOVid can not be changed."
     word2id = {"OOVid": 0}
     id2word = ["OOVid"]
     data = {}
