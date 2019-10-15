@@ -6,6 +6,7 @@
 import torch
 import argparse
 import unicodedata
+from config import Constants
 from config.config import MyConf
 
 
@@ -33,15 +34,15 @@ def read_file(char_dic, word_dic, filename):
                 char_dic[char] = char_dic[char]+1 if char in char_dic else 1
 
 
-def convert_dic(dic, min_fre, config):
-    assert config.oovId == 0, "oovId can not be changed."
-    assert config.padId == 1, "padId can not be changed."
-    assert config.oovKey == '-oov-', "oovKey can not be changed."
-    assert config.padKey == '-pad-', "padKey can not be changed."
-    item2id = {config.oovKey: config.oovId}
-    id2item = [config.oovKey]
-    item2id[config.padKey] = len(id2item)
-    id2item.append(config.padKey)
+def convert_dic(dic, min_fre):
+    assert Constants.oovId == 0, "oovId can not be changed."
+    assert Constants.padId == 1, "padId can not be changed."
+    assert Constants.oovKey == '-oov-', "oovKey can not be changed."
+    assert Constants.padKey == '-pad-', "padKey can not be changed."
+    item2id = {Constants.oovKey: Constants.oovId}
+    id2item = [Constants.oovKey]
+    item2id[Constants.padKey] = Constants.padId
+    id2item.append(Constants.padKey)
     id_ = 2
     for item in dic:
         if dic[item] >= min_fre:
@@ -59,16 +60,16 @@ def build_vocab(args, config):
     read_file(char_dic, word_dic, args.train)
     read_file(char_dic, word_dic, args.dev)
     read_file(char_dic, word_dic, args.test)
-    char2id, id2char = convert_dic(char_dic, config.char_min_fre, config)
+    char2id, id2char = convert_dic(char_dic, config.char_min_fre)
     print("Building %s vocab completes, which is %d." % ('char', len(char2id)))
-    word2id, id2word = convert_dic(word_dic, config.word_min_fre, config)
+    word2id, id2word = convert_dic(word_dic, config.word_min_fre)
     print("Building %s vocab completes, which is %d." % ('word', len(word2id)))
     return {'char2id': char2id, 'id2char': id2char, 'word2id': word2id, 'id2word': id2word}
 
 
-def convert_insts(filename, char2id, type_, config):
+def convert_insts(filename, char2id, type_):
     print("Start to convert %s text data..." % type_)
-    assert config.SEP == 1 and config.APP == 0, "SEP and APP can not be changed."
+    assert Constants.SEP == 1 and Constants.APP == 0, "SEP and APP can not be changed."
     insts = []
     golds = []
     with open(filename, mode="r", encoding="utf-8") as reader:
@@ -77,12 +78,12 @@ def convert_insts(filename, char2id, type_, config):
             line = unicodedata.normalize("NFKC", line.strip())
             if len(line) <= 0: continue
 
-            inst = [char2id[line[0]] if line[0] in char2id else config.oovId]
-            gold = [config.SEP]
+            inst = [char2id[line[0]] if line[0] in char2id else Constants.oovId]
+            gold = [Constants.SEP]
             for i in range(1, len(line)):
                 if line[i] is not ' ':
-                    inst.append(char2id[line[i]] if line[i] in char2id else config.oovId)
-                    gold.append(config.SEP if line[i-1] is ' ' else config.APP)
+                    inst.append(char2id[line[i]] if line[i] in char2id else Constants.oovId)
+                    gold.append(Constants.SEP if line[i-1] is ' ' else Constants.APP)
             insts.append(inst)
             golds.append(gold)
     assert len(insts) == len(golds), "Converting %s text data goes wrong" % type_
@@ -93,9 +94,9 @@ def convert_insts(filename, char2id, type_, config):
 def make_dataset(args, config):
     data = {}
     dic = build_vocab(args, config)
-    data["train"] = convert_insts(args.train, dic['char2id'], "train", config)
-    data["dev"] = convert_insts(args.dev, dic['char2id'], "dev", config)
-    data["test"] = convert_insts(args.test, dic['char2id'], "test", config)
+    data["train"] = convert_insts(args.train, dic['char2id'], "train")
+    data["dev"] = convert_insts(args.dev, dic['char2id'], "dev")
+    data["test"] = convert_insts(args.test, dic['char2id'], "test")
     return {'dic': dic, 'data': data}
 
 
@@ -113,7 +114,7 @@ def main():
     dataset = make_dataset(args, config)
     torch.save(dataset, args.output_file)
     print("Output file is saved at %s." % args.output_file)
-    # test(dataset)
+    test(dataset)
 
 
 if __name__ == '__main__':
