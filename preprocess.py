@@ -21,34 +21,52 @@ def parse_args():
     return args, config
 
 
-def read_file(dic, filename):
+def read_file(char_dic, word_dic, filename):
     with open(filename, mode="r", encoding="utf-8") as reader:
         lines = reader.readlines()
         for line in lines:
-            line = unicodedata.normalize("NFKC", line.strip().replace(' ', ''))
+            line = unicodedata.normalize("NFKC", line.strip()).split(' ')
+            for word in line:
+                word_dic[word] = word_dic[word]+1 if word in word_dic else 1
+            line = ''.join(line)
             for char in line:
-                dic[char] = dic[char]+1 if char in dic else 1
+                char_dic[char] = char_dic[char]+1 if char in char_dic else 1
 
 
-def build_vocab(word2id, id2word, args, config):
-    print("Start to build vocab...")
+def convert_dic(dic, min_fre, config):
+    assert config.oovId == 0, "oovId can not be changed."
+    assert config.oovKey == '-oov-', "oovKey can not be changed."
+    assert config.padKey == '-pad-', "padKey can not be changed."
+    item2id = {config.oovKey: config.oovId}
+    id2item = [config.oovKey]
     id_ = 1
-    dic = {}
-    read_file(dic, args.train)
-    read_file(dic, args.dev)
-    read_file(dic, args.test)
-    for char in dic:
-        if dic[char] >= config.min_fre:
-            word2id[char] = id_
-            id2word.append(char)
+    for item in dic:
+        if dic[item] >= min_fre:
+            item2id[item] = id_
+            id2item.append(item)
             id_ += 1
-    word2id[config.padKey] = len(id2word)
-    id2word.append(config.padKey)
-    assert id_+1 == len(word2id) and id_+1 == len(id2word), "Building vocab goes wrong"
-    print("Building vocab completes, length of vocab is %d." % len(word2id))
+    item2id[config.padKey] = len(id2item)
+    id2item.append(config.padKey)
+    assert id_ + 1 == len(item2id) and id_ + 1 == len(id2item), "Building vocab goes wrong"
+    return item2id, id2item
 
 
-def convert_insts(filename, word2id, type_, config):
+def build_vocab(args, config):
+    print("Start to build vocab...")
+    char_dic = {}
+    word_dic = {}
+    read_file(char_dic, word_dic, args.train)
+    read_file(char_dic, word_dic, args.dev)
+    read_file(char_dic, word_dic, args.test)
+    char2id, id2char = convert_dic(char_dic, config.char_min_fre, config)
+    print("Building %s vocab completes, which is %d." % ('char', len(char2id)))
+    word2id, id2word = convert_dic(word_dic, config.word_min_fre, config)
+    print("Building %s vocab completes, which is %d." % ('word', len(word2id)))
+    print(word2id)
+    return char2id, id2char, word2id, id2word
+
+
+def convert_insts(filename, char2id, type_, config):
     print("Start to convert %s text data..." % type_)
     assert config.SEP == 1 and config.APP == 0, "SEP and APP can not be changed."
     insts = []
@@ -59,11 +77,11 @@ def convert_insts(filename, word2id, type_, config):
             line = unicodedata.normalize("NFKC", line.strip())
             if len(line) <= 0: continue
 
-            inst = [word2id[line[0]] if line[0] in word2id else config.oovId]
+            inst = [char2id[line[0]] if line[0] in char2id else config.oovId]
             gold = [config.SEP]
             for i in range(1, len(line)):
                 if line[i] is not ' ':
-                    inst.append(word2id[line[i]] if line[i] in word2id else config.oovId)
+                    inst.append(char2id[line[i]] if line[i] in char2id else config.oovId)
                     gold.append(config.SEP if line[i-1] is ' ' else config.APP)
             insts.append(inst)
             golds.append(gold)
@@ -73,17 +91,12 @@ def convert_insts(filename, word2id, type_, config):
 
 
 def make_dataset(args, config):
-    assert config.oovId == 0, "oovId can not be changed."
-    assert config.oovKey == '-oov-', "oovKey can not be changed."
-    assert config.padKey == '-pad-', "padKey can not be changed."
-    word2id = {config.oovKey: config.oovId}
-    id2word = [config.oovKey]
     data = {}
-    build_vocab(word2id, id2word, args, config)
-    data["train"] = convert_insts(args.train, word2id, "train", config)
-    data["dev"] = convert_insts(args.dev, word2id, "dev", config)
-    data["test"] = convert_insts(args.test, word2id, "test", config)
-    return {"word2id": word2id, "id2word": id2word, "data": data}
+    char2id, id2char, word2id, id2word = build_vocab(args, config)
+    data["train"] = convert_insts(args.train, char2id, "train", config)
+    data["dev"] = convert_insts(args.dev, char2id, "dev", config)
+    data["test"] = convert_insts(args.test, char2id, "test", config)
+    return {"char2id": char2id, "id2char": id2char, "word2id": word2id, "id2word": id2word, "data": data}
 
 
 def main():
@@ -97,4 +110,13 @@ if __name__ == '__main__':
     print("Preprocess starts...")
     main()
     print("Preprocess ends.")
+
+
+def test(dataset):
+    id2char = dataset["id2char"]
+    inst = dataset["data"]['train']['insts'][0]
+    for id in inst:
+        print(id2char[id], end='')
+    print()
+    print(dataset["data"]['train']['golds'][0])
 
