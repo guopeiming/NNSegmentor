@@ -35,19 +35,20 @@ def read_file(char_dic, word_dic, filename):
 
 def convert_dic(dic, min_fre, config):
     assert config.oovId == 0, "oovId can not be changed."
+    assert config.padId == 1, "padId can not be changed."
     assert config.oovKey == '-oov-', "oovKey can not be changed."
     assert config.padKey == '-pad-', "padKey can not be changed."
     item2id = {config.oovKey: config.oovId}
     id2item = [config.oovKey]
-    id_ = 1
+    item2id[config.padKey] = len(id2item)
+    id2item.append(config.padKey)
+    id_ = 2
     for item in dic:
         if dic[item] >= min_fre:
             item2id[item] = id_
             id2item.append(item)
             id_ += 1
-    item2id[config.padKey] = len(id2item)
-    id2item.append(config.padKey)
-    assert id_ + 1 == len(item2id) and id_ + 1 == len(id2item), "Building vocab goes wrong"
+    assert id_ == len(item2id) and id_ == len(id2item), "Building vocab goes wrong"
     return item2id, id2item
 
 
@@ -62,8 +63,7 @@ def build_vocab(args, config):
     print("Building %s vocab completes, which is %d." % ('char', len(char2id)))
     word2id, id2word = convert_dic(word_dic, config.word_min_fre, config)
     print("Building %s vocab completes, which is %d." % ('word', len(word2id)))
-    print(word2id)
-    return char2id, id2char, word2id, id2word
+    return {'char2id': char2id, 'id2char': id2char, 'word2id': word2id, 'id2word': id2word}
 
 
 def convert_insts(filename, char2id, type_, config):
@@ -92,11 +92,20 @@ def convert_insts(filename, char2id, type_, config):
 
 def make_dataset(args, config):
     data = {}
-    char2id, id2char, word2id, id2word = build_vocab(args, config)
-    data["train"] = convert_insts(args.train, char2id, "train", config)
-    data["dev"] = convert_insts(args.dev, char2id, "dev", config)
-    data["test"] = convert_insts(args.test, char2id, "test", config)
-    return {"char2id": char2id, "id2char": id2char, "word2id": word2id, "id2word": id2word, "data": data}
+    dic = build_vocab(args, config)
+    data["train"] = convert_insts(args.train, dic['char2id'], "train", config)
+    data["dev"] = convert_insts(args.dev, dic['char2id'], "dev", config)
+    data["test"] = convert_insts(args.test, dic['char2id'], "test", config)
+    return {'dic': dic, 'data': data}
+
+
+def test(dataset):
+    id2char = dataset["dic"]["id2char"]
+    inst = dataset["data"]['train']['insts'][0]
+    for id_ in inst:
+        print(id2char[id_], end='')
+    print()
+    print(dataset["data"]['train']['golds'][0])
 
 
 def main():
@@ -104,19 +113,11 @@ def main():
     dataset = make_dataset(args, config)
     torch.save(dataset, args.output_file)
     print("Output file is saved at %s." % args.output_file)
+    # test(dataset)
 
 
 if __name__ == '__main__':
     print("Preprocess starts...")
     main()
     print("Preprocess ends.")
-
-
-def test(dataset):
-    id2char = dataset["id2char"]
-    inst = dataset["data"]['train']['insts'][0]
-    for id in inst:
-        print(id2char[id], end='')
-    print()
-    print(dataset["data"]['train']['golds'][0])
 
