@@ -12,3 +12,6 @@ Undergraduate graduation project ---- Chinese Word Segmentation for Weibo text
   - `train` (str) ------ path of train text.
   - `dev` (str) ------ path of dev text.
   - `test` (str) ------ path of test text.
+ 
+### Note And Part to be improved
+- pretrained embeddings data should includes `oovKey` and `padKey`.
