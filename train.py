@@ -8,7 +8,7 @@ import argparse
 from config.config import MyConf
 from utils.pretrained_embed import load_pretrained_embed
 from torch.utils.data import DataLoader
-from data.dataset import CWSDataset, pad_collate_fn
+from utils.dataset import CWSDataset, pad_collate_fn
 
 
 def parse_args():

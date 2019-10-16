@@ -4,7 +4,6 @@
 # @Last Modify Time : 2019/10/15 18:59
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
-import numpy as np
 from config import Constants
 from torch.utils.data.dataset import Dataset
 
