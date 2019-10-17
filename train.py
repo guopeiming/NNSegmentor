@@ -44,8 +44,8 @@ def main():
 
     # ========= Loading Dataset ========= #
     print("Loading dataset starts...")
-    load_data(config)
-    train_data, dev_data, test_data = load_data(config)
+    # load_data(config)
+    # train_data, dev_data, test_data = load_data(config)
 
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
