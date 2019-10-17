@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/12 18:59
 # @File : dataset.py
-# @Last Modify Time : 2019/10/15 18:59
+# @Last Modify Time : 2019/10/16 20:24
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 from config import Constants
@@ -21,11 +21,6 @@ class CWSDataset(Dataset):
         self.id2word = dic['id2word']
         self.insts = data['insts']
         self.golds = data['golds']
-        self.fine_tune = config.fine_tune
-        self.pretrained_embed = None
-
-        if not self.fine_tune:
-            self.pretrained_embed = config.pretrained_embedding
 
     def __len__(self):
         return len(self.insts)
@@ -33,10 +28,28 @@ class CWSDataset(Dataset):
     def __getitem__(self, idx):
         inst = self.insts[idx]
         gold = self.golds[idx]
-        if not self.fine_tune:
-            dic = self.pretrained_embed['char']['item2id']
-            inst = [dic[self.id2char[id_]] if self.id2char[id_] in dic else Constants.oovId for id_ in inst]
+        # if not self.fine_tune:
+        #     dic = self.pretrained_embed['char']['item2id']
+        #     inst = [dic[self.id2char[id_]] if self.id2char[id_] in dic else Constants.oovId for id_ in inst]
         return [inst, gold]
+
+    def get_char_embed_num(self):
+        return len(self.id2char)
+
+    def get_word_embed_num(self):
+        return len(self.id2word)
+
+    def get_id2char(self):
+        return self.id2char
+
+    def get_id2word(self):
+        return self.id2word
+
+    def get_char2id(self):
+        return self.char2id
+
+    def get_word2id(self):
+        return self.word2id
 
 
 def pad_collate_fn(insts):

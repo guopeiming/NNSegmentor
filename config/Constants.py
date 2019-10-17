@@ -9,3 +9,5 @@ padKey = '-pad-'
 padId = 1
 APP = 0
 SEP = 1
+EPSILON = 1e-10
+TEST_OOV_NUM = 5
