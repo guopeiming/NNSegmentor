@@ -12,7 +12,7 @@ class CWSDataset(Dataset):
     """
     dataset for training NNTranSegmentor
     """
-    def __init__(self, dic, data, config):
+    def __init__(self, dic, data):
         super(CWSDataset, self).__init__()
         assert len(data['insts']) == len(data['golds']), "The number of insts and golds must be equal."
         self.char2id = dic['char2id']
