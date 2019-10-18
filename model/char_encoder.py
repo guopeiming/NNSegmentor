@@ -5,7 +5,7 @@
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import numpy as np
 import torch.nn.init as init
-from utils.pretrained_embed import load_pretrained_char_embed
+from utils.data_utils import load_pretrained_char_embed
 
 
 import torch.nn as nn

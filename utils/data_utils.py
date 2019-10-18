@@ -8,6 +8,8 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.init as init
 from config import Constants
+from torch.utils.data import DataLoader
+from utils.dataset import CWSDataset, pad_collate_fn
 
 
 def gen_embed_nnembed(embeddings_dic, id2item, length):
@@ -76,4 +78,22 @@ def load_pretrained_word_embed(id2word, config):
                                  config.word_gen_oov_mode, config.word_gen_oov_uniform)
     print('Loading word embeddings ends.')
     return embeddings
+
+
+def load_data(config):
+    data = torch.load(config.data_path)
+    train_data = data["data"]["train"]
+    train_dataset = CWSDataset(data["dic"], train_data)
+    train_data = DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=config.shuffle,
+                            num_workers=config.num_workers, collate_fn=pad_collate_fn, drop_last=config.drop_last)
+    dev_data = data["data"]["dev"]
+    dev_data = DataLoader(dataset=CWSDataset(data["dic"], dev_data), batch_size=config.batch_size,
+                          shuffle=config.shuffle, num_workers=config.num_workers, collate_fn=pad_collate_fn,
+                          drop_last=config.drop_last)
+    test_data = data["data"]["test"]
+    test_data = DataLoader(dataset=CWSDataset(data["dic"], test_data), batch_size=config.batch_size,
+                           shuffle=config.shuffle, num_workers=config.num_workers, collate_fn=pad_collate_fn,
+                           drop_last=config.drop_last)
+    print('train_dataset, dev_dataset, test_dataset loading completes.\n')
+    return train_data, dev_data, test_data, train_dataset
 
