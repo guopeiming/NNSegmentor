@@ -48,6 +48,9 @@
   - `word_lstm_hid_dim` (integer) ------ hidden state dimension of word_LSTM.
   - `word_lstm_layers` (integer) ------ layers of word_LSTM.
 
+- [Optimizer]
+  - `name` (string) ------ which optimizer to use.
+
   
 ## Constants.py
 - `oovKey` (string) ------ key of oov in vocab. You can not change it.
