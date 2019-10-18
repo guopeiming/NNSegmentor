@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/15 16:11
 # @File : train.py
-# @Last Modify Time : 2019/10/17 09:27
+# @Last Modify Time : 2019/10/18 08:33
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 import numpy as np
@@ -60,19 +60,19 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
         return torch.tensor(embed)
 
 
-def load_pretrained_char_embed(dataset, config):
+def load_pretrained_char_embed(id2char, config):
     print('Loading char embeddings starts...')
     print('Loading %s pretrained embeddings from %s' % ('char', config.char_embed_file))
-    embeddings = read_embed_file(dataset.get_id2char, config.char_embed_file, config.char_embed_dim,
+    embeddings = read_embed_file(id2char, config.char_embed_file, config.char_embed_dim,
                                  config.char_gen_oov_mode, config.char_gen_oov_uniform)
     print('Loading char embeddings ends.')
     return embeddings
 
 
-def load_pretrained_word_embed(dataset, config):
+def load_pretrained_word_embed(id2word, config):
     print('Loading word embeddings starts...')
     print('Loading %s pretrained embeddings from %s' % ('word', config.word_embed_file))
-    embeddings = read_embed_file(dataset.get_id2word, config.word_embed_file, config.word_embed_dim,
+    embeddings = read_embed_file(id2word, config.word_embed_file, config.word_embed_dim,
                                  config.word_gen_oov_mode, config.word_gen_oov_uniform)
     print('Loading word embeddings ends.')
     return embeddings

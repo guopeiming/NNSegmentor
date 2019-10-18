@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/16 14:17
 # @File : dataset.py
-# @Last Modify Time : 2019/10/16 14:17
+# @Last Modify Time : 2019/10/18 08:33
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import numpy as np
 import torch.nn.init as init
@@ -16,16 +16,15 @@ class CharEncoder(nn.Module):
     """
     submodel of NNTransSegmentor ------ CharEncoder
     """
-    def __init__(self, dataset, config):
+    def __init__(self, char_vocab_size, id2char, config):
         super(CharEncoder, self).__init__()
 
         if config.pretrained_embed_char:
-            embeddings = load_pretrained_char_embed(dataset, config)
+            embeddings = load_pretrained_char_embed(id2char, config)
             self.embed = nn.Embedding.from_pretrained(embeddings, freeze=config.fine_tune, padding_idx=Constants.padId,
                                                       max_norm=config.char_embed_max_norm)
         else:
-            embed_num = dataset.get_char_embed_num()
-            self.embed = nn.Embedding(embed_num, config.char_embed_dim, padding_idx=Constants.padId,
+            self.embed = nn.Embedding(char_vocab_size, config.char_embed_dim, padding_idx=Constants.padId,
                                       max_norm=config.char_embed_max_norm)
             self.embed.weight.requires_grad_(config.fine_tune)
             init.normal_(self.embed.weight, mean=0.0, std=np.sqrt(5. / config.char_embed_dim))

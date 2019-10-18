@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/12 18:59
 # @File : dataset.py
-# @Last Modify Time : 2019/10/16 20:24
+# @Last Modify Time : 2019/10/18 08:33
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 from config import Constants
@@ -33,10 +33,10 @@ class CWSDataset(Dataset):
         #     inst = [dic[self.id2char[id_]] if self.id2char[id_] in dic else Constants.oovId for id_ in inst]
         return [inst, gold]
 
-    def get_char_embed_num(self):
+    def get_char_vocab_size(self):
         return len(self.id2char)
 
-    def get_word_embed_num(self):
+    def get_word_vocab_size(self):
         return len(self.id2word)
 
     def get_id2char(self):
