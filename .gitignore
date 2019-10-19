@@ -106,3 +106,4 @@ venv.bak/
 # customed
 .idea
 data
+/model/visual
