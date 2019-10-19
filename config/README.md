@@ -38,6 +38,8 @@
   If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. 
   - `epoch` (integer) ------ train epoch.
   - `fine_tune` (False or True) ------ whether to fine tune embedding.
+  - `savepath` (path) ------ path for saving model.
+  - `visual_logger_path` (path) ------ path for visual logger.
 
 - [Model]
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
@@ -48,7 +50,6 @@
   - `char_lstm_layers` (integer) ------ layers of char_LSTM.
   - `word_lstm_hid_dim` (integer) ------ hidden state dimension of word_LSTM.
   - `word_lstm_layers` (integer) ------ layers of word_LSTM.
-  - `savepath` (path) ------ path for saving model.
 
 - [Optimizer]
   - `name` (string) ------ which optimizer to use.

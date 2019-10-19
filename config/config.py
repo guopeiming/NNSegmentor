@@ -109,6 +109,14 @@ class MyConf(ConfigParser):
         return self.getboolean('Train', 'fine_tune')
 
     @property
+    def save_path(self):
+        return self.get('Train', 'save_path')
+
+    @property
+    def visual__logger_path(self):
+        return self.get('Train', 'visual_logger_path')
+
+    @property
     def char_embed_dim(self):
         return self.getint('Model', 'char_embed_dim')
 
@@ -143,10 +151,6 @@ class MyConf(ConfigParser):
     @property
     def word_lstm_layers(self):
         return self.getint('Model', 'word_lstm_layers')
-
-    @property
-    def save_path(self):
-        return self.get('Model', 'save_path')
 
     @property
     def opti_name(self):
