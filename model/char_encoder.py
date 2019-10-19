@@ -31,12 +31,13 @@ class CharEncoder(nn.Module):
 
         self.lstm = nn.LSTM(config.char_embed_dim, config.char_lstm_hid_dim, config.char_lstm_layers,
                             bias=True, dropout=0., bidirectional=True)
-        init.normal_(self.lstm.weight_ih, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
-        init.normal_(self.lstm.weight_hh, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
-        init.uniform_(self.lstm.bias_ih)
-        init.uniform_(self.lstm.bias_hh)
+        init.normal_(self.lstm.weight_ih_l0, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
+        init.normal_(self.lstm.weight_hh_l0, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
+        init.uniform_(self.lstm.bias_ih_l0)
+        init.uniform_(self.lstm.bias_hh_l0)
 
     def forward(self, insts):
-        output, (h_n, c_n) = self.lstm(insts)
+        embeddings = self.embed(insts).permute(1, 0, 2)
+        output, (h_n, c_n) = self.lstm(embeddings)
         return output
 

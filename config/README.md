@@ -15,13 +15,7 @@
   
 - [Data]
   - `data_path` (path) ------ path of data that `preprocess.py` outputs.
-  - `batch_size` (integer) ------ how many insts per batch to load.
-  - `shuffle` (True or False) ------ set to True to have the data reshuffled at every epoch.
-  - `num_worders` (integer) ------ how many subprocesses to use for data loading. 0 means that the data will be loaded 
-  in the main process.
-  - `drop_last` (True or False) ------ set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. 
-  If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. 
-
+  
 - [Embed]
   - `pretrained_embed_char` (False or True) ------ whether to use pretrained embeddings.
   - `pretrained_embed_word` (False or True) ------ whether to use pretrained embeddings.
@@ -36,6 +30,13 @@
 
 - [Train]
   - `use_cuda` (True or False) ------ use `cuda` speed up.
+  - `batch_size` (integer) ------ how many insts per batch to load.
+  - `shuffle` (True or False) ------ set to True to have the data reshuffled at every epoch.
+  - `num_worders` (integer) ------ how many subprocesses to use for data loading. 0 means that the data will be loaded 
+  in the main process.
+  - `drop_last` (True or False) ------ set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. 
+  If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. 
+  - `epoch` (integer) ------ train epoch.
   - `fine_tune` (False or True) ------ whether to fine tune embedding.
 
 - [Model]
@@ -47,6 +48,7 @@
   - `char_lstm_layers` (integer) ------ layers of char_LSTM.
   - `word_lstm_hid_dim` (integer) ------ hidden state dimension of word_LSTM.
   - `word_lstm_layers` (integer) ------ layers of word_LSTM.
+  - `savepath` (path) ------ path for saving model.
 
 - [Optimizer]
   - `name` (string) ------ which optimizer to use.
@@ -59,5 +61,6 @@
 - `padId` (integer) ------ id of pad in vocab. You can not change it.
 - `APP` (integer) ------ digital representation of action append. You can not change it.
 - `SEP` (integer) ------ digital representation of action separate. You can not change it.
+- `actionPadId` (integer) ------ id of action pad.
 - `EPSILON` (float) ------ threshold for subtraction comparision.
 - `TEST_OOV_NUM` (integer) ------ the number for testing the number of oov in pretrained embeddings.

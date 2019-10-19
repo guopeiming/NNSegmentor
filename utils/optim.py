@@ -15,7 +15,7 @@ class Optim:
     def __init__(self, name, config, model):
         assert name in Optim.name_list, 'optimizer name is wrong.'
         if name == 'Adam':
-            self._optimizer = torch.optim.Adam(model)
+            self._optimizer = torch.optim.Adam(model.parameters())
 
     def zero_grad(self):
         self._optimizer.zero_grad()
