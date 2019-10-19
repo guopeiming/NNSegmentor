@@ -37,22 +37,6 @@ class MyConf(ConfigParser):
         return self.get('Data', 'data_path')
 
     @property
-    def batch_size(self):
-        return self.getint('Data', 'batch_size')
-
-    @property
-    def shuffle(self):
-        return self.getboolean('Data', 'shuffle')
-
-    @property
-    def num_workers(self):
-        return self.getint('Data', 'num_workers')
-
-    @property
-    def drop_last(self):
-        return self.getboolean('Data', 'drop_last')
-
-    @property
     def pretrained_embed_char(self):
         return self.getboolean('Embed', 'pretrained_embed_char')
 
@@ -89,6 +73,38 @@ class MyConf(ConfigParser):
         return self.getboolean('Train', 'use_cuda')
 
     @property
+    def batch_size(self):
+        return self.getint('Train', 'batch_size')
+
+    @property
+    def shuffle(self):
+        return self.getboolean('Train', 'shuffle')
+
+    @property
+    def num_workers(self):
+        return self.getint('Train', 'num_workers')
+
+    @property
+    def drop_last(self):
+        return self.getboolean('Train', 'drop_last')
+
+    @property
+    def epoch(self):
+        return self.getint('Train', 'epoch')
+
+    @property
+    def logInterval(self):
+        return self.getint('Train', 'logInterval')
+
+    @property
+    def valInterval(self):
+        return self.getint('Train', 'valInterval')
+
+    @property
+    def saveInterval(self):
+        return self.getint('Train', 'saveInterval')
+
+    @property
     def fine_tune(self):
         return self.getboolean('Train', 'fine_tune')
 
@@ -102,14 +118,14 @@ class MyConf(ConfigParser):
 
     @property
     def char_embed_max_norm(self):
-        num = self.getboolean('Model', 'char_embed_max_norm')
-        assert num > 0., 'Char_max_norm must greater than 0.0'
+        num = self.getfloat('Model', 'char_embed_max_norm')
+        assert num >= 0., 'Char_max_norm must greater than 0.0'
         return None if abs(num - 0.) < Constants.EPSILON else num
 
     @property
     def word_embed_max_norm(self):
-        num = self.getboolean('Model', 'word_embed_max_norm')
-        assert num > 0., 'Word_max_norm must greater than 0.0'
+        num = self.getfloat('Model', 'word_embed_max_norm')
+        assert num >= 0., 'Word_max_norm must greater than 0.0'
         return None if abs(num - 0.) < Constants.EPSILON else num
 
     @property
@@ -127,6 +143,10 @@ class MyConf(ConfigParser):
     @property
     def word_lstm_layers(self):
         return self.getint('Model', 'word_lstm_layers')
+
+    @property
+    def save_path(self):
+        return self.get('Model', 'save_path')
 
     @property
     def opti_name(self):
