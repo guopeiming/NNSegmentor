@@ -10,6 +10,7 @@ from config import Constants
 from utils.optim import Optim
 from config.config import MyConf
 from utils.data_utils import load_data
+from utils.visualLogger import VisualLogger
 from model.NNTranSegmentor import NNTranSegmentor
 
 
@@ -93,6 +94,7 @@ def main():
     print(model, end='\n\n')
 
     optimizer = Optim(config.opti_name, config, model)
+    # visual_logger = VisualLogger(config.visual__logger_path)
 
     # ========= Training ========= #
     print('Training starts...')
@@ -119,15 +121,17 @@ def main():
                 R = TP/(TP+FN)
                 print('[%d/%d], [%d/%d] Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' %
                       (epoch_i, config.epoch, batch_i, len(train_data), total_loss, ACC, P, R))
+                # visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
-                eval_model(model, dev_data, test_data)
+                eval_model(model, dev_data, test_data, config)
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
                     os.mkdir(config.save_path)
                 filename = '%d.model' % (batch_i+1+epoch_i*len(train_data))
                 modelpath = os.path.join(config.save_path, filename)
                 torch.save(model, modelpath)
+    # visual_logger.close()
     print('Training ends.')
 
 
