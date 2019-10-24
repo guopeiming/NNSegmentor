@@ -35,3 +35,6 @@ If you use `pip`, we strongly recommend you to create an virtual python3.6 envir
   python ./train.py
   ```
  
+### Author
+student: Peiming Guo  
+supervisor: [Meishan Zhang](https://zhangmeishan.github.io/)
