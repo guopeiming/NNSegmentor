@@ -3,9 +3,9 @@
 # @File : config.py
 # @Last Modify Time : 2019/10/15 21:07
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
-oovKey = '-oov-'
+oovKey = '<unk>'
 oovId = 0
-padKey = '-pad-'
+padKey = '<pad>'
 padId = 1
 APP = 0
 SEP = 1
