@@ -28,7 +28,6 @@ class StackLSTMCell(nn.Module):
 
     def forward(self, insts, op):
         """
-
         :param insts: (batch_size, self.input_size) input subword embeddings tensor, in batch
         :param op: (batch_size, ) input op tensor, -1 means pop, 1 means push, 0 means hold
         :return:
