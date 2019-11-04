@@ -4,17 +4,16 @@
 # @Last Modify Time : 2019/10/31 22:13
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
-import numpy as np
 import torch.nn as nn
 import torch.nn.init as init
 
 
-class StackLSTMCell(nn.Module):
+class WordStackLSTMCell(nn.Module):
     """
     StackLSTMCell
     """
     def __init__(self, input_size, hidden_size, device):
-        super(StackLSTMCell, self).__init__()
+        super(WordStackLSTMCell, self).__init__()
 
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -26,17 +25,25 @@ class StackLSTMCell(nn.Module):
         self.lstm = nn.LSTMCell(self.input_size, self.hidden_size, bias=True)
         self.__init_para()
 
-    def forward(self, insts, op):
+    def forward(self, subword):
         """
-        :param insts: (batch_size, self.input_size) input subword embeddings tensor, in batch
-        :param op: (batch_size, ) input op tensor, -1 means pop, 1 means push, 0 means hold
+        :param subword: (batch_size, self.input_size) input subword embeddings tensor, in batch
+        :return: output of word_decoder layer
+        """
+        h, c = self.stack_hidden[self.idx, self.pos, :], self.stack_cell[self.idx, self.pos, :]
+        h, c = self.lstm(subword, (h, c))
+        self.stack_hidden[self.idx, self.pos + 1, :], self.stack_cell[self.idx, self.pos + 1, :] = h, c
+        return h, c
+
+    def update_pos(self, op):
+        """
+        update self.pos
+        :param op: (batch_size, ) op vector, -1 means pop, 0 means hold, 1 means push.
         :return:
         """
-        # hx, cx = self.stack_hidden.gather(1, pos).squeeze(1), self.stack_cell.gather(1, pos).squeeze(1)
-        # self.stack_hidden[]
-        return insts
+        self.pos = self.pos + op
 
-    def build_stack(self, stack_size, batch_size):
+    def init_stack(self, stack_size, batch_size):
         """
         build stack when batch training starts.
 
@@ -50,8 +57,8 @@ class StackLSTMCell(nn.Module):
         self.pos = torch.zeros(batch_size, dtype=torch.long).to(self.device)
 
     def __init_para(self):
-        init.normal_(self.lstm.weight_hh, mean=0., std=np.sqrt(6./(self.input_size+self.hidden_size)))
-        init.normal_(self.lstm.weight_ih, mean=0., std=np.sqrt(6./(self.input_size+self.hidden_size)))
-        init.normal_(self.lstm.bias_hh, mean=0., std=np.sqrt(6./(self.input_size+self.hidden_size)))
-        init.normal_(self.lstm.bias_ih, mean=0., std=np.sqrt(6./self.input_size+self.hidden_size))
+        init.xavier_normal_(self.lstm.weight_hh)
+        init.xavier_normal_(self.lstm.weight_ih)
+        init.normal_(self.lstm.bias_hh)
+        init.normal_(self.lstm.bias_ih)
 
