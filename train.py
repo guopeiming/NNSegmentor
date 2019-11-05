@@ -123,7 +123,7 @@ def main():
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), total_loss, ACC, P, R))
                 visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
-                break
+                # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, dev_data, test_data, config)
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
