@@ -8,12 +8,12 @@ import torch.nn as nn
 import torch.nn.init as init
 
 
-class WordStackLSTMCell(nn.Module):
+class StackLSTMCell(nn.Module):
     """
     StackLSTMCell
     """
     def __init__(self, input_size, hidden_size, device):
-        super(WordStackLSTMCell, self).__init__()
+        super(StackLSTMCell, self).__init__()
 
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -25,13 +25,13 @@ class WordStackLSTMCell(nn.Module):
         self.lstm = nn.LSTMCell(self.input_size, self.hidden_size, bias=True)
         self.__init_para()
 
-    def forward(self, subword):
+    def forward(self, input):
         """
-        :param subword: (batch_size, self.input_size) input subword embeddings tensor, in batch
-        :return: output of word_decoder layer
+        :param input: (batch_size, self.input_size) input tensor, in batch
+        :return:
         """
         h, c = self.stack_hidden[self.idx, self.pos, :], self.stack_cell[self.idx, self.pos, :]
-        h, c = self.lstm(subword, (h, c))
+        h, c = self.lstm(input, (h, c))
         self.stack_hidden[self.idx, self.pos + 1, :], self.stack_cell[self.idx, self.pos + 1, :] = h, c
         return h, c
 

@@ -9,8 +9,8 @@ import torch
 import torch.nn as nn
 from config import Constants
 from model.char_encoder import CharEncoder
-from model.WordStackLSTMCell import WordStackLSTMCell
-from model.SubwordStackLSTMCell import SubwordStackLSTMCell
+from model.StackLSTMCell import StackLSTMCell
+from model.SubwordLSTMCell import SubwordLSTMCell
 
 
 class ParaNNTranSegmentor(nn.Module):
@@ -22,8 +22,8 @@ class ParaNNTranSegmentor(nn.Module):
         super(ParaNNTranSegmentor, self).__init__()
 
         self.char_encoder = CharEncoder(char_vocab_size, id2char, config)
-        self.subwStackLSTM = SubwordStackLSTMCell(config.char_lstm_hid_dim*2, config.word_lstm_hid_dim, config.device)
-        self.wordStackLSTM = WordStackLSTMCell(config.word_lstm_hid_dim, config.word_lstm_hid_dim, config.device)
+        self.subwStackLSTM = SubwordLSTMCell(config.char_lstm_hid_dim*2, config.word_lstm_hid_dim, config.device)
+        self.wordStackLSTM = StackLSTMCell(config.word_lstm_hid_dim, config.word_lstm_hid_dim, config.device)
         self.classifier = nn.Linear(config.word_lstm_hid_dim+2*config.char_lstm_hid_dim, 3, bias=True)
         self.subword_action_map = torch.tensor([1, 2, 2])
         self.word_action_map = torch.tensor([0, 1, 1])
