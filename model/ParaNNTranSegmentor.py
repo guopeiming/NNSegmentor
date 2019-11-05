@@ -52,17 +52,17 @@ class ParaNNTranSegmentor(nn.Module):
             output = self.classifier(torch.cat([word_repre, chars[idx, :, :]], 1))  # [batch_size, 3]
 
             if self.training:
-                subwordOP = self.subword_action_map.index_select(0, golds[idx])
-                wordOP = self.word_action_map.index_select(0, golds[idx])
+                subwordOP = self.subword_action_map.index_select(0, golds[:, idx])
+                wordOP = self.word_action_map.index_select(0, golds[:, idx])
             else:
                 subwordOP = self.subword_action_map.index_select(0, torch.argmax(output, 0))
                 wordOP = self.word_action_map.index_select(0, torch.argmax(output, 0))
             self.subwStackLSTM.update_pos(subwordOP)
             self.wordStackLSTM.update_pos(wordOP)
 
-            pred.append(output)
+            pred.append(output.unsqueeze(1))
         return torch.cat(pred, 1)  # [batch, char_num, label_num]
 
     def __init_para(self):
         nn.init.xavier_uniform_(self.classifier.weight)
-        nn.init.uniform(self.classifier.bias)
+        nn.init.uniform_(self.classifier.bias)
