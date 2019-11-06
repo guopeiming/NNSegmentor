@@ -23,7 +23,7 @@ def parse_args():
     return config
 
 
-def cal_preformance(pred, golds, TP, FN, FP, TN):
+def cal_preformance(pred, golds, TP, FN, FP, TN, criterion):
     for insts_i in range(len(golds)):
         for char_i in range(len(golds[insts_i])):
             if golds[insts_i][char_i] == Constants.APP:
@@ -36,30 +36,27 @@ def cal_preformance(pred, golds, TP, FN, FP, TN):
     max_len = max(len(gold) for gold in golds)
     golds = torch.tensor([gold + [Constants.actionPadId] * (max_len - len(gold)) for gold in golds], dtype=torch.int64)
     assert golds.shape[0] == pred.shape[0] and golds.shape[1] == pred.shape[1], 'golds and pred\'s shape are different.'
-    loss = torch.nn.functional.cross_entropy(pred.view((pred.shape[0]*pred.shape[1], 3)),
-                                             golds.view((golds.shape[0]*golds.shape[1],)),
-                                             ignore_index=Constants.actionPadId,
-                                             reduction='sum')
+    loss = criterion(pred.view((pred.shape[0]*pred.shape[1], 3)), golds.view((golds.shape[0]*golds.shape[1],)),
+                     ignore_index=Constants.actionPadId, reduction='sum')
     return loss, TP, FN, FP, TN
 
 
-def eval_model(model, dev_data, test_data, config):
+def eval_model(model, criterion, dev_data, test_data, device):
     model.eval()
     print('Validating starts...')
-    eval_dataset(model, dev_data, config, 'dev')
-    eval_dataset(model, test_data, config, 'test')
+    eval_dataset(model, criterion, dev_data, device, 'dev')
+    eval_dataset(model, criterion, test_data, device, 'test')
 
 
-def eval_dataset(model, data, config, type):
+def eval_dataset(model, criterion, data, device, type):
     total_loss = 0.0
     TP, FN, FP, TN = 0, 0, 0, 0
     for batch, golds in data:
-        if config.use_cuda:
-            batch = batch.to(config.device)
-            golds = golds.to(config.device)
+        batch = batch.to(device)
+        golds = golds.to(device)
 
         pred = model(batch)
-        loss, TP, FN, FP, TN = cal_preformance(pred, golds, TP, FN, FP, TN)
+        loss, TP, FN, FP, TN = cal_preformance(pred, golds, TP, FN, FP, TN, criterion)
         total_loss += loss.item()
     total_loss = total_loss/(TP+FN+FP+TN)
     ACC = (TP+TN)/(TP+FN+FP+TN)
@@ -94,6 +91,7 @@ def main():
     print(model, end='\n\n')
 
     optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
+    criterion = torch.nn.CrossEntropyLoss().to(config.device)
     visual_logger = VisualLogger(config.visual__logger_path)
 
     # ========= Training ========= #
@@ -108,7 +106,7 @@ def main():
 
             optimizer.zero_grad()
             pred = model(batch, golds)
-            loss, TP, FN, FP, TN= cal_preformance(pred, golds, TP, FN, FP, TN)
+            loss, TP, FN, FP, TN= cal_preformance(pred, golds, TP, FN, FP, TN, criterion)
             total_loss += loss.item()
 
             loss.backward()
@@ -125,7 +123,7 @@ def main():
                 total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
                 # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
-                eval_model(model, dev_data, test_data, config)
+                eval_model(model, criterion, dev_data, test_data, config.device)
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
                     os.mkdir(config.save_path)
