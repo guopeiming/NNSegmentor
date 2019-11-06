@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/11 17:40
 # @File : config.py
-# @Last Modify Time : 2019/10/18 08:33
+# @Last Modify Time : 2019/11/06 19:03
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 from config import Constants
 from configparser import ConfigParser
@@ -155,4 +155,12 @@ class MyConf(ConfigParser):
     @property
     def opti_name(self):
         return self.get('Optimizer', 'name')
+
+    @property
+    def learning_rate(self):
+        return self.getfloat('Optimizer', 'learning_rate')
+
+    @property
+    def weight_decay(self):
+        return self.getfloat('Optimizer', 'weight_decay')
 

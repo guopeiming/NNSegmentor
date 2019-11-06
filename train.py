@@ -93,7 +93,7 @@ def main():
         model.to(config.device)
     print(model, end='\n\n')
 
-    optimizer = Optim(config.opti_name, config, model)
+    optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
     visual_logger = VisualLogger(config.visual__logger_path)
 
     # ========= Training ========= #

@@ -53,6 +53,8 @@
 
 - [Optimizer]
   - `name` (string) ------ which optimizer to use.
+  - `learning_rate` (float) ------ learning rate of optimizer.
+  - `weight_decay` (float) ------ lamda
 
   
 ## Constants.py
