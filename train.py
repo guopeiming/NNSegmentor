@@ -63,8 +63,8 @@ def eval_dataset(model, data, config, type):
         total_loss += loss.item()
     total_loss = total_loss/(TP+FN+FP+TN)
     ACC = (TP+TN)/(TP+FN+FP+TN)
-    P = TP/(TP+FP)
-    R = TP/(TP+FN)
+    P = TP/(TP+FP+1)
+    R = TP/(TP+FN+1)
     print('Model performance in %s dataset Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' % (type, total_loss, ACC, P, R))
 
 
@@ -117,8 +117,8 @@ def main():
             if (batch_i+1+epoch_i*(len(train_data))) % config.logInterval == 0:
                 total_loss = total_loss/(TP+FN+FP+TN)
                 ACC = (TP+TN)/(TP+FN+FP+TN)
-                P = TP/(TP+FP)
-                R = TP/(TP+FN)
+                P = TP/(TP+FP+1)
+                R = TP/(TP+FN+1)
                 print('[%d/%d], [%d/%d] Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' %
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), total_loss, ACC, P, R))
                 visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
