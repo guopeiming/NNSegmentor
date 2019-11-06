@@ -11,7 +11,7 @@ from utils.optim import Optim
 from config.config import MyConf
 from utils.data_utils import load_data
 from utils.visualLogger import VisualLogger
-from model.NNTranSegmentor import NNTranSegmentor
+from model.ParaNNTranSegmentor import ParaNNTranSegmentor
 
 
 def parse_args():
@@ -63,8 +63,8 @@ def eval_dataset(model, data, config, type):
         total_loss += loss.item()
     total_loss = total_loss/(TP+FN+FP+TN)
     ACC = (TP+TN)/(TP+FN+FP+TN)
-    P = TP/(TP+FP)
-    R = TP/(TP+FN)
+    P = TP/(TP+FP+1)
+    R = TP/(TP+FN+1)
     print('Model performance in %s dataset Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' % (type, total_loss, ACC, P, R))
 
 
@@ -78,23 +78,23 @@ def main():
 
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
-    model = NNTranSegmentor(train_dataset.get_id2char(),
-                            train_dataset.get_word2id(),
-                            train_dataset.get_char_vocab_size(),
-                            train_dataset.get_word_vocab_size(),
-                            config)
-    config.device = torch.device('cpu')
     if config.use_cuda:
-        assert torch.cuda.is_available(), "Cuda is not available."
+        assert torch.cuda.is_available(), "cuda is not available."
         config.device = torch.device('cuda:0')
-        print('GPU is ready.')
-        model.to(config.device)
-        print('model is loaded to GPU: %d\n' % config.device.index)
+    else:
+        config.device = torch.device('cpu')
     print('you will train model in %s.\n' % config.device.type)
+    model = ParaNNTranSegmentor(train_dataset.get_id2char(),
+                                train_dataset.get_word2id(),
+                                train_dataset.get_char_vocab_size(),
+                                train_dataset.get_word_vocab_size(),
+                                config)
+    if config.use_cuda:
+        model.to(config.device)
     print(model, end='\n\n')
 
     optimizer = Optim(config.opti_name, config, model)
-    # visual_logger = VisualLogger(config.visual__logger_path)
+    visual_logger = VisualLogger(config.visual__logger_path)
 
     # ========= Training ========= #
     print('Training starts...')
@@ -117,12 +117,13 @@ def main():
             if (batch_i+1+epoch_i*(len(train_data))) % config.logInterval == 0:
                 total_loss = total_loss/(TP+FN+FP+TN)
                 ACC = (TP+TN)/(TP+FN+FP+TN)
-                P = TP/(TP+FP)
-                R = TP/(TP+FN)
+                P = TP/(TP+FP+1)
+                R = TP/(TP+FN+1)
                 print('[%d/%d], [%d/%d] Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' %
-                      (epoch_i, config.epoch, batch_i, len(train_data), total_loss, ACC, P, R))
-                # visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
+                      (epoch_i+1, config.epoch, batch_i+1, len(train_data), total_loss, ACC, P, R))
+                visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
+                # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, dev_data, test_data, config)
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
@@ -131,7 +132,7 @@ def main():
                 filename = '%d.model' % (batch_i+1+epoch_i*len(train_data))
                 modelpath = os.path.join(config.save_path, filename)
                 torch.save(model, modelpath)
-    # visual_logger.close()
+    visual_logger.close()
     print('Training ends.')
 
 

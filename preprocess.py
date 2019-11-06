@@ -37,8 +37,8 @@ def read_file(char_dic, word_dic, filename):
 def convert_dic(dic, min_fre):
     assert Constants.oovId == 0, "oovId can not be changed."
     assert Constants.padId == 1, "padId can not be changed."
-    assert Constants.oovKey == '-oov-', "oovKey can not be changed."
-    assert Constants.padKey == '-pad-', "padKey can not be changed."
+    assert Constants.oovKey == '<unk>', "oovKey can not be changed."
+    assert Constants.padKey == '<pad>', "padKey can not be changed."
     item2id = {Constants.oovKey: Constants.oovId}
     id2item = [Constants.oovKey]
     item2id[Constants.padKey] = Constants.padId

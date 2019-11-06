@@ -19,7 +19,7 @@ def gen_embed_nnembed(embeddings_dic, id2item, length):
     embed = embed.numpy()
     for idx, item in enumerate(id2item):
         if item in embeddings_dic:
-            embed[idx] = np.array(embeddings_dic[item], dtype=float)
+            embed[idx] = np.array(embeddings_dic[item], dtype=np.float32)
         else:
             oov_num += 1
     assert oov_num < Constants.TEST_OOV_NUM, 'The number of oov is too big.'
@@ -31,9 +31,9 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
     assert gen_oov_mode in ['zeros', 'nnembed', 'avg', 'uniform'], \
         'Mode of generating oov embedding vector does not exist.'
     embeddings_dic = {}
-    with open(filename, mode='r') as reader:
+    with open(filename, mode='r', encoding='utf-8') as reader:
         lines = reader.readlines()
-        assert length == len(lines[0].strip().strip(' ')) - 1, 'Pretrained embeddings dimension is correct.'
+        assert length == len(lines[0].strip().split(' ')) - 1, 'Pretrained embeddings dimension is correct.'
         for line in lines:
             strs = line.strip().split(' ')
             if strs[0] in id2item:
@@ -43,15 +43,15 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
     if gen_oov_mode == 'nnembed':
         return gen_embed_nnembed(embeddings_dic, id2item, length)
     else:
-        avg = np.mean(np.array([embeddings_dic[key] for key in embeddings_dic], dtype=float), axis=0)
-        embed = np.empty((len(id2item), length), dtype=float)
+        avg = np.mean(np.array([embeddings_dic[key] for key in embeddings_dic], dtype=np.float32), axis=0)
+        embed = np.empty((len(id2item), length), dtype=np.float32)
         oov_num = 0
         for idx, item in enumerate(id2item):
             if item in embeddings_dic:
-                embed[idx] = np.array(embeddings_dic[item], dtype=float)
+                embed[idx] = np.array(embeddings_dic[item], dtype=np.float32)
             else:
                 if gen_oov_mode == 'zeros':
-                    embed[idx] = np.array([0.] * length, dtype=float)
+                    embed[idx] = np.array([0.] * length, dtype=np.float32)
                 elif gen_oov_mode == 'uniform':
                     embed[idx] = np.random.uniform(-uniform_par, uniform_par, size=length)
                 else:
@@ -64,8 +64,8 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
 
 def load_pretrained_char_embed(id2char, config):
     print('Loading char embeddings starts...')
-    print('Loading %s pretrained embeddings from %s' % ('char', config.char_embed_file))
-    embeddings = read_embed_file(id2char, config.char_embed_file, config.char_embed_dim,
+    print('Loading %s pretrained embeddings from %s' % ('char', config.pretrained_char_embed_file))
+    embeddings = read_embed_file(id2char, config.pretrained_char_embed_file, config.char_embed_dim,
                                  config.char_gen_oov_mode, config.char_gen_oov_uniform)
     print('Loading char embeddings ends.')
     return embeddings
@@ -73,8 +73,8 @@ def load_pretrained_char_embed(id2char, config):
 
 def load_pretrained_word_embed(id2word, config):
     print('Loading word embeddings starts...')
-    print('Loading %s pretrained embeddings from %s' % ('word', config.word_embed_file))
-    embeddings = read_embed_file(id2word, config.word_embed_file, config.word_embed_dim,
+    print('Loading %s pretrained embeddings from %s' % ('word', config.pretrained_word_embed_file))
+    embeddings = read_embed_file(id2word, config.pretrained_word_embed_file, config.word_embed_dim,
                                  config.word_gen_oov_mode, config.word_gen_oov_uniform)
     print('Loading word embeddings ends.')
     return embeddings
