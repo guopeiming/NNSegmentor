@@ -55,8 +55,8 @@ class ParaNNTranSegmentor(nn.Module):
                 subwordOP = self.subword_action_map.index_select(0, golds[:, idx])
                 wordOP = self.word_action_map.index_select(0, golds[:, idx])
             else:
-                subwordOP = self.subword_action_map.index_select(0, torch.argmax(output, 0))
-                wordOP = self.word_action_map.index_select(0, torch.argmax(output, 0))
+                subwordOP = self.subword_action_map.index_select(0, torch.argmax(output, 1))
+                wordOP = self.word_action_map.index_select(0, torch.argmax(output, 1))
             self.subwStackLSTM.update_pos(subwordOP)
             self.wordStackLSTM.update_pos(wordOP)
 
