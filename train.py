@@ -23,21 +23,20 @@ def parse_args():
     return config
 
 
-def cal_preformance(pred, golds, TP, FN, FP, TN, criterion):
-    for insts_i in range(len(golds)):
-        for char_i in range(len(golds[insts_i])):
-            if golds[insts_i][char_i] == Constants.APP:
-                if pred[insts_i][char_i][Constants.APP] > pred[insts_i][char_i][Constants.SEP]: TN = TN + 1
-                else: FP = FP + 1
-            else:
-                if pred[insts_i][char_i][Constants.SEP] >= pred[insts_i][char_i][Constants.APP]: TP = TP + 1
-                else: FN = FN + 1
+def cal_preformance(pred, golds, criterion):
+    mask = (golds != Constants.actionPadId).unsequeeze(2)
+    pred, golds = torch.masked_select(pred, mask).view(-1, 2), torch.masked_select(golds, mask)  # [seq_len_sum, 2/1]
+    assert golds.shape[0] == pred.shape[0], 'golds and pred\'s shape are different.'
 
-    max_len = max(len(gold) for gold in golds)
-    golds = torch.tensor([gold + [Constants.actionPadId] * (max_len - len(gold)) for gold in golds], dtype=torch.int64)
-    assert golds.shape[0] == pred.shape[0] and golds.shape[1] == pred.shape[1], 'golds and pred\'s shape are different.'
-    loss = criterion(pred.view((pred.shape[0]*pred.shape[1], 3)), golds.view((golds.shape[0]*golds.shape[1],)),
-                     ignore_index=Constants.actionPadId, reduction='sum')
+    loss = criterion(pred, golds, reduction='sum')
+
+    pred = torch.argmax(pred, 1)
+    diff = golds - pred
+    FN = torch.sum(diff == 1)
+    FP = torch.sum(diff == -1)
+    TP = torch.sum(golds == 1) - FN
+    TN = torch.sum(golds == 0) - FP
+    assert TP+FN+FP+TN == golds.shape[0], 'computing performance wrongs.'
     return loss, TP, FN, FP, TN
 
 
@@ -48,21 +47,25 @@ def eval_model(model, criterion, dev_data, test_data, device):
     eval_dataset(model, criterion, test_data, device, 'test')
 
 
-def eval_dataset(model, criterion, data, device, type):
+def eval_dataset(model, criterion, data, device, typ):
     total_loss = 0.0
-    TP, FN, FP, TN = 0, 0, 0, 0
+    total_TP, total_FN, total_FP, total_TN = 0, 0, 0, 0
     for batch, golds in data:
         batch = batch.to(device)
         golds = golds.to(device)
 
         pred = model(batch)
-        loss, TP, FN, FP, TN = cal_preformance(pred, golds, TP, FN, FP, TN, criterion)
+        loss, TP, FN, FP, TN = cal_preformance(pred, golds, criterion)
         total_loss += loss.item()
-    total_loss = total_loss/(TP+FN+FP+TN)
-    ACC = (TP+TN)/(TP+FN+FP+TN)
-    P = TP/(TP+FP+1)
-    R = TP/(TP+FN+1)
-    print('Model performance in %s dataset Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' % (type, total_loss, ACC, P, R))
+        total_TP += TP
+        total_FN += FN
+        total_FP += FP
+        total_TN += TN
+    total_loss = total_loss/(total_TP+total_FN+total_FP+total_TN)
+    ACC = (total_TP+total_TN)/(total_TP+total_FN+total_FP+total_TN)
+    P = total_TP/(total_TP+total_FP+1)
+    R = total_TP/(total_TP+total_FN+1)
+    print('Model performance in %s dataset Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' % (typ, total_loss, ACC, P, R))
 
 
 def main():
@@ -96,7 +99,7 @@ def main():
 
     # ========= Training ========= #
     print('Training starts...')
-    total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
+    total_loss, total_TP, total_FN, total_FP, total_TN = 0.0, 0, 0, 0, 0
     for epoch_i in range(config.epoch):
         for batch_i, (batch, golds) in enumerate(train_data):
             if config.use_cuda:
@@ -106,21 +109,25 @@ def main():
 
             optimizer.zero_grad()
             pred = model(batch, golds)
-            loss, TP, FN, FP, TN= cal_preformance(pred, golds, TP, FN, FP, TN, criterion)
+            loss, TP, FN, FP, TN= cal_preformance(pred, golds, criterion)
             total_loss += loss.item()
+            total_TP += TP
+            total_FN += FN
+            total_FP += FP
+            total_TN += TN
 
             loss.backward()
             optimizer.step()
 
             if (batch_i+1+epoch_i*(len(train_data))) % config.logInterval == 0:
-                total_loss = total_loss/(TP+FN+FP+TN)
-                ACC = (TP+TN)/(TP+FN+FP+TN)
-                P = TP/(TP+FP+1)
-                R = TP/(TP+FN+1)
+                total_loss = total_loss/(total_TP+total_FN+total_FP+total_TN)
+                ACC = (total_TP+total_TN)/(total_TP+total_FN+total_FP+total_TN)
+                P = total_TP/(total_TP+total_FP+1)
+                R = total_TP/(total_TP+total_FN+1)
                 print('[%d/%d], [%d/%d] Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' %
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), total_loss, ACC, P, R))
                 visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
-                total_loss, TP, FN, FP, TN = 0.0, 0, 0, 0, 0
+                total_loss, total_TP, total_FN, total_FP, total_TN = 0.0, 0, 0, 0, 0
                 # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, criterion, dev_data, test_data, config.device)
