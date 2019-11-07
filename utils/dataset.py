@@ -1,7 +1,7 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/12 18:59
 # @File : dataset.py
-# @Last Modify Time : 2019/10/18 08:33
+# @Last Modify Time : 2019/11/07 09:39
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import torch
 from config import Constants
@@ -59,6 +59,7 @@ def pad_collate_fn(insts):
     insts, golds = list(zip(*insts))
     max_len = max(len(inst) for inst in insts)
 
-    insts = torch.tensor([inst + [Constants.padId] * (max_len - len(inst)) for inst in insts], dtype=torch.int64)
+    insts = torch.tensor([inst + [Constants.padId] * (max_len - len(inst)) for inst in insts], dtype=torch.long)
+    golds = torch.tensor([gold + [Constants.actionPadId] * (max_len - len(gold)) for gold in golds], dtype=torch.long)
     return [insts, golds]
 
