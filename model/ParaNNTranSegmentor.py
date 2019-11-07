@@ -24,7 +24,7 @@ class ParaNNTranSegmentor(nn.Module):
         self.char_encoder = CharEncoder(char_vocab_size, id2char, config)
         self.subwStackLSTM = SubwordLSTMCell(config.char_lstm_hid_dim*2, config.word_lstm_hid_dim, config.device)
         self.wordStackLSTM = StackLSTMCell(config.word_lstm_hid_dim, config.word_lstm_hid_dim, config.device)
-        self.classifier = nn.Linear(config.word_lstm_hid_dim+2*config.char_lstm_hid_dim, 3, bias=True)
+        self.classifier = nn.Linear(config.word_lstm_hid_dim+2*config.char_lstm_hid_dim, 2, bias=True)
         self.device = config.device
         self.subword_action_map = torch.tensor([1, 2, 2]).to(self.device)
         self.word_action_map = torch.tensor([0, 1, 1]).to(self.device)
@@ -36,11 +36,6 @@ class ParaNNTranSegmentor(nn.Module):
         batch_size, seq_len = insts.shape[0], insts.shape[1]
         self.subwStackLSTM.init_stack(2*seq_len+2, batch_size)
         self.wordStackLSTM.init_stack(seq_len+1, batch_size)
-
-        if golds is not None:
-            max_len = max(len(gold) for gold in golds)
-            golds = torch.tensor([gold + [Constants.actionPadId] * (max_len - len(gold)) for gold in golds],
-                                 dtype=torch.int64).to(self.device)
 
         pred = []
         for idx in range(seq_len):
