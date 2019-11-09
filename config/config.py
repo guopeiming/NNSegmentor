@@ -113,7 +113,7 @@ class MyConf(ConfigParser):
         return self.get('Train', 'save_path')
 
     @property
-    def visual__logger_path(self):
+    def visual_logger_path(self):
         return self.get('Train', 'visual_logger_path')
 
     @property

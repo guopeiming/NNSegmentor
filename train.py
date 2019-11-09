@@ -78,12 +78,12 @@ def main():
 
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
-    if config.use_cuda:
-        assert torch.cuda.is_available(), "cuda is not available."
+    if config.use_cuda and torch.cuda.is_available():
         config.device = torch.device('cuda:0')
+        print('You will train model in cuda: %d.' % config.device.index)
     else:
         config.device = torch.device('cpu')
-    print('you will train model in %s.\n' % config.device.type)
+        print('GPU is not available, use CPU default.')
     model = ParaNNTranSegmentor(train_dataset.get_id2char(),
                                 train_dataset.get_word2id(),
                                 train_dataset.get_char_vocab_size(),
@@ -95,7 +95,7 @@ def main():
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
     optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
-    visual_logger = VisualLogger(config.visual__logger_path)
+    visual_logger = VisualLogger(config.visual_logger_path)
 
     # ========= Training ========= #
     print('Training starts...')
