@@ -73,17 +73,18 @@ def main():
 
     # ========= Loading Dataset ========= #
     print(config)
-    print("\n\nLoading dataset starts...")
+    print("Loading dataset starts...")
     train_data, dev_data, test_data, train_dataset = load_data(config)
+    print('\n\n', end='')
 
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
     if config.use_cuda and torch.cuda.is_available():
         config.device = torch.device('cuda:0')
-        print('You will train model in cuda: %d.' % config.device.index)
+        print('You will train model in cuda: %d.\n' % config.device.index)
     else:
         config.device = torch.device('cpu')
-        print('GPU is not available, use CPU default.')
+        print('GPU is not available, use CPU default.\n')
     model = ParaNNTranSegmentor(train_dataset.get_id2char(),
                                 train_dataset.get_word2id(),
                                 train_dataset.get_char_vocab_size(),
@@ -91,7 +92,7 @@ def main():
                                 config)
     if config.use_cuda:
         model.to(config.device)
-    print(model, end='\n\n')
+    print(model, end='\n\n\n')
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
     optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
@@ -127,7 +128,7 @@ def main():
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, ACC, P, R))
                 visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, total_TP, total_FN, total_FP, total_TN = 0.0, 0, 0, 0, 0
-                # break
+                break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, criterion, dev_data, test_data, config.device)
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:

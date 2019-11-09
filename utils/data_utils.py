@@ -67,7 +67,7 @@ def load_pretrained_char_embed(id2char, config):
     print('Loading %s pretrained embeddings from %s' % ('char', config.pretrained_char_embed_file))
     embeddings = read_embed_file(id2char, config.pretrained_char_embed_file, config.char_embed_dim,
                                  config.char_gen_oov_mode, config.char_gen_oov_uniform)
-    print('Loading char embeddings ends.')
+    print('Loading char embeddings ends.\n')
     return embeddings
 
 
@@ -76,7 +76,7 @@ def load_pretrained_word_embed(id2word, config):
     print('Loading %s pretrained embeddings from %s' % ('word', config.pretrained_word_embed_file))
     embeddings = read_embed_file(id2word, config.pretrained_word_embed_file, config.word_embed_dim,
                                  config.word_gen_oov_mode, config.word_gen_oov_uniform)
-    print('Loading word embeddings ends.')
+    print('Loading word embeddings ends.\n')
     return embeddings
 
 
@@ -94,6 +94,6 @@ def load_data(config):
     test_data = DataLoader(dataset=CWSDataset(data["dic"], test_data), batch_size=config.batch_size,
                            shuffle=config.shuffle, num_workers=config.num_workers, collate_fn=pad_collate_fn,
                            drop_last=config.drop_last)
-    print('train_dataset, dev_dataset, test_dataset loading completes.\n')
+    print('train_dataset, dev_dataset, test_dataset loading completes.')
     return train_data, dev_data, test_data, train_dataset
 
