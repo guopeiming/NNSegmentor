@@ -4,6 +4,7 @@
 # @Last Modify Time : 2019/10/18 08:33
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import os
+import sys
 import torch
 import argparse
 from config import Constants
@@ -126,11 +127,13 @@ def main():
                 R = total_TP/(total_TP+total_FN+1)
                 print('[%d/%d], [%d/%d] Loss: %.05f, ACC: %.05f, P: %.05f, R: %.05f' %
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, ACC, P, R))
+                sys.stdout.flush()
                 visual_logger.visual_scalars({'loss': total_loss}, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, total_TP, total_FN, total_FP, total_TN = 0.0, 0, 0, 0, 0
                 # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, criterion, dev_data, test_data, config.device)
+                sys.stdout.flush()
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
                     os.mkdir(config.save_path)
