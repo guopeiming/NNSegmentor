@@ -59,7 +59,7 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
                     embed[idx] = avg
                 oov_num += 1
                 print('pretrained embeddings does not include %s, init it by %s default.' % (item, gen_oov_mode))
-        assert oov_num < Constants.TEST_OOV_NUM, 'The number of oov is too big.'
+        assert oov_num < Constants.MAX_OOV_NUM, 'The number of oov is too big.'
         print('The number of (oov) is %d' % oov_num)
         return torch.tensor(embed)
 

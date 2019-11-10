@@ -11,4 +11,4 @@ APP = 0
 SEP = 1
 actionPadId = 2
 EPSILON = 1e-10
-TEST_OOV_NUM = 5
+MAX_OOV_NUM = 10
