@@ -23,7 +23,7 @@ If you use `pip`, we strongly recommend you to create an virtual python3.6 envir
 - Preprocess  
   Build vocab and insts from corpus, and save them to file`o`. Details see `preprocess.py`.
   ```bash
-  python ./preprocess.py -o ./data/pku/pku.vocab.data.bin --train ./data/pku/train.pku.hwc.seg --dev ./data/pku/dev.pku.hwc.seg --test ./data/pku/test.pku.hwc.seg
+  python ./preprocess.py --train ./data/pku/train.pku.hwc.seg --dev ./data/pku/dev.pku.hwc.seg --test ./data/pku/test.pku.hwc.seg
   ```
   - `o` (str) ------ path of vocab and insts built by `preprocess.py`.
   - `train` (str) ------ path of train text.
