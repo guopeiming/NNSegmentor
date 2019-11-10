@@ -12,7 +12,6 @@ from config.config import MyConf
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Data Preprocess")
-    parser.add_argument("-o", "--output", dest="output_file", type=str, required=True, help="config_file path")
     parser.add_argument("--train", dest="train", type=str, required=True, help="path of train text")
     parser.add_argument("--dev", dest="dev", type=str, required=True, help="path of dev text")
     parser.add_argument("--test", dest="test", type=str, required=True, help="path of test text")
@@ -112,8 +111,8 @@ def test(dataset):
 def main():
     args, config = parse_args()
     dataset = make_dataset(args, config)
-    torch.save(dataset, args.output_file)
-    print("Output file is saved at %s." % args.output_file)
+    torch.save(dataset, config.data_path)
+    print("Output file is saved at %s." % config.data_path)
     test(dataset)
 
 
