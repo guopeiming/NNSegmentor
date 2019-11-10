@@ -40,6 +40,7 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
                 embeddings_dic[strs[0]] = [float(value) for value in strs[1:]]
     if Constants.padKey not in embeddings_dic:
         embeddings_dic[Constants.padKey] = [0.] * length
+        print('pretrained embeddings does not include <pad>, init it zeros default.')
     if gen_oov_mode == 'nnembed':
         return gen_embed_nnembed(embeddings_dic, id2item, length)
     else:
@@ -57,6 +58,7 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
                 else:
                     embed[idx] = avg
                 oov_num += 1
+                print('pretrained embeddings does not include %s, init it by %s default.' % (item, gen_oov_mode))
         assert oov_num < Constants.TEST_OOV_NUM, 'The number of oov is too big.'
         print('The number of (oov) is %d' % oov_num)
         return torch.tensor(embed)
