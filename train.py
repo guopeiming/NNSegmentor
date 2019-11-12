@@ -148,7 +148,7 @@ def main():
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
                 visual_logger.visual_scalars(scal, batch_i+1+epoch_i*(len(train_data)))
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
-                break
+                # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
                 eval_model(model, criterion, dev_data, test_data, config.device)
                 sys.stdout.flush()
