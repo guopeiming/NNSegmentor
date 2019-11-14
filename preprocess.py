@@ -21,7 +21,7 @@ def parse_args():
     return args, config
 
 
-def read_file(char_dic, word_dic, filename):
+def read_file(char_dic, bichar_dic, word_dic, filename):
     with open(filename, mode="r", encoding="utf-8") as reader:
         lines = reader.readlines()
         for line in lines:
@@ -31,6 +31,7 @@ def read_file(char_dic, word_dic, filename):
             line = ''.join(line)
             for char in line:
                 char_dic[char] = char_dic[char]+1 if char in char_dic else 1
+            bichar
 
 
 def convert_dic(dic, min_fre):
@@ -56,9 +57,10 @@ def build_vocab(args, config):
     print("Start to build vocab...")
     char_dic = {}
     word_dic = {}
-    read_file(char_dic, word_dic, args.train)
-    read_file(char_dic, word_dic, args.dev)
-    read_file(char_dic, word_dic, args.test)
+    bichar_dic = {}
+    read_file(char_dic, bichar_dic, word_dic, args.train)
+    read_file(char_dic, bichar_dic, word_dic, args.dev)
+    read_file(char_dic, bichar_dic, word_dic, args.test)
     char2id, id2char = convert_dic(char_dic, config.char_min_fre)
     print("Building %s vocab completes, which is %d." % ('char', len(char2id)))
     word2id, id2word = convert_dic(word_dic, config.word_min_fre)
