@@ -31,7 +31,13 @@ def read_file(char_dic, bichar_dic, word_dic, filename):
             line = ''.join(line)
             for char in line:
                 char_dic[char] = char_dic[char]+1 if char in char_dic else 1
-            bichar
+            bichar = Constants.BOS + line[0]
+            bichar_dic[bichar] = bichar_dic[bichar]+1 if bichar in bichar_dic else 1
+            for idx in range(0, len(line)-1, 1):
+                bichar = line[idx] + line[idx+1]
+                bichar_dic[bichar] = bichar_dic[bichar]+1 if bichar in bichar_dic else 1
+            bichar = line[len(line)-1] + Constants.EOS
+            bichar_dic[bichar] = bichar_dic[bichar]+1 if bichar in bichar_dic else 1
 
 
 def convert_dic(dic, min_fre):
@@ -44,12 +50,17 @@ def convert_dic(dic, min_fre):
     item2id[Constants.padKey] = Constants.padId
     id2item.append(Constants.padKey)
     id_ = 2
+    drop_list = []
     for item in dic:
         if dic[item] >= min_fre:
             item2id[item] = id_
             id2item.append(item)
             id_ += 1
-    assert id_ == len(item2id) and id_ == len(id2item), "Building vocab goes wrong"
+        else:
+            drop_list.append(item)
+    assert id_ == len(item2id) and id_ == len(id2item) and id_+len(drop_list) == len(dic)+2, "Building vocab goes wrong"
+    print(str(drop_list)+'are abandoned, which are replaced by \'oov\'.')
+    print('drop rate is %.05f = %d/%d' % (len(drop_list)/len(dic), len(drop_list), len(dic)))
     return item2id, id2item
 
 
@@ -62,16 +73,32 @@ def build_vocab(args, config):
     read_file(char_dic, bichar_dic, word_dic, args.dev)
     read_file(char_dic, bichar_dic, word_dic, args.test)
     char2id, id2char = convert_dic(char_dic, config.char_min_fre)
-    print("Building %s vocab completes, which is %d." % ('char', len(char2id)))
+    print("Building char vocab completes, which is %d." % len(char2id))
+    bichar2id, id2bichar = convert_dic(bichar_dic, config.bichar_min_fre)
+    print('Building bichar vocab completes, which is %d.' % len(bichar2id))
     word2id, id2word = convert_dic(word_dic, config.word_min_fre)
-    print("Building %s vocab completes, which is %d." % ('word', len(word2id)))
-    return {'char2id': char2id, 'id2char': id2char, 'word2id': word2id, 'id2word': id2word}
+    print('Building word vocab completes, which is %d.' % len(word2id))
+    return {'char2id': char2id, 'id2char': id2char,
+            'bichar2id': bichar2id, 'id2bichar': id2bichar,
+            'word2id': word2id, 'id2word': id2word}
 
 
-def convert_insts(filename, char2id, type_):
+def expand(inst, vocab, item):
+    if item in vocab:
+        inst.append(vocab[item])
+        res = 0
+    else:
+        inst.append(Constants.oovId)
+        res = 1
+    return res
+
+
+def convert_insts(filename, char2id, bichar2id, type_):
     print("Start to convert %s text data..." % type_)
     assert Constants.SEP == 1 and Constants.APP == 0, "SEP and APP can not be changed."
-    insts = []
+    insts_char = []
+    insts_bichar_l = []
+    insts_bichar_r = []
     golds = []
     with open(filename, mode="r", encoding="utf-8") as reader:
         lines = reader.readlines()
@@ -79,35 +106,64 @@ def convert_insts(filename, char2id, type_):
             line = unicodedata.normalize("NFKC", line.strip())
             if len(line) <= 0: continue
 
-            inst = [char2id[line[0]] if line[0] in char2id else Constants.oovId]
+            inst_char = []
+            inst_bichar_l = []
+            inst_bichar_r = []
+            char_oov_num, bichar_l_oov_num, bichar_r_oov_num = 0, 0, 0
             gold = [Constants.SEP]
             for i in range(1, len(line)):
                 if line[i] is not ' ':
-                    inst.append(char2id[line[i]] if line[i] in char2id else Constants.oovId)
                     gold.append(Constants.SEP if line[i-1] is ' ' else Constants.APP)
-            insts.append(inst)
             golds.append(gold)
-    assert len(insts) == len(golds), "Converting %s text data goes wrong" % type_
-    print("Converting %s text data completes, which length is %d." % (type_, len(insts)))
-    return {"insts": insts, "golds": golds}
+
+            line = line.replace(' ', '')
+            for i in range(0, len(line)):
+                char_oov_num += expand(inst_char, char2id, line[i])
+                tag = Constants.BOS if id == 0 else line[i-1]
+                bichar_l_oov_num += expand(inst_bichar_l, bichar2id, tag+line[i])
+                tag = Constants.EOS if id == len(line)-1 else line[i+1]
+                bichar_r_oov_num += expand(inst_bichar_r, bichar2id, line[i]+tag)
+            insts_char.append(inst_char)
+            insts_bichar_l.append(inst_bichar_l)
+            insts_bichar_r.append(inst_bichar_r)
+
+    assert len(insts_char) == len(golds) \
+        and len(insts_char) == len(insts_bichar_l) \
+        and len(insts_char) == len(insts_bichar_r), "Converting %s text data goes wrong" % type_
+    print("Converting %s text data completes, which length is %d." % (type_, len(insts_char)))
+    print('The number of oov in char insts, bichar_l insts and bichar_r insts are %d %d %d.' %
+          (char_oov_num, bichar_l_oov_num, bichar_r_oov_num))
+    return {'insts_char': insts_char,
+            'insts_bichar_l': insts_bichar_l,
+            'insts_bichar_r': insts_bichar_r,
+            'golds': golds}
 
 
 def make_dataset(args, config):
     data = {}
-    dic = build_vocab(args, config)
-    data["train"] = convert_insts(args.train, dic['char2id'], "train")
-    data["dev"] = convert_insts(args.dev, dic['char2id'], "dev")
-    data["test"] = convert_insts(args.test, dic['char2id'], "test")
-    return {'dic': dic, 'data': data}
+    vocab = build_vocab(args, config)
+    data["train"] = convert_insts(args.train, vocab['char2id'], vocab['bichar2id'], 'train')
+    data["dev"] = convert_insts(args.dev, vocab['char2id'], vocab['bichar2id'], 'dev')
+    data["test"] = convert_insts(args.test, vocab['char2id'], vocab['bichar'], 'test')
+    return {'dic': vocab, 'data': data}
 
 
-def test(dataset):
+def test(dataset, tag):
     id2char = dataset["dic"]["id2char"]
-    inst = dataset["data"]['train']['insts'][0]
+    id2bichar = dataset["dic"]["bichar2id"]
+    inst = dataset["data"]['train']['insts_char'][tag]
     for id_ in inst:
         print(id2char[id_], end='')
     print()
-    print(dataset["data"]['train']['golds'][0])
+    inst = dataset["data"]["train"]["insts_bichar_l"][tag]
+    for id_ in inst:
+        print(id2bichar[id_]+' ', end='')
+    print()
+    inst = dataset['data']['train']['insts_bichar_r'][tag]
+    for id_ in inst:
+        print(id2bichar[id_]+' ', end='')
+    print()
+    print(dataset["data"]['train']['golds'][tag])
 
 
 def main():
@@ -115,7 +171,8 @@ def main():
     dataset = make_dataset(args, config)
     torch.save(dataset, config.data_path)
     print("Output file is saved at %s." % config.data_path)
-    test(dataset)
+    test(dataset, 0)
+    test(dataset, 300)
 
 
 if __name__ == '__main__':
