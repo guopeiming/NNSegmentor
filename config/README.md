@@ -12,6 +12,8 @@
   appearing times smaller than `char_min_fre`.
   - `word_min_fre` (integer) ------ The smallest word frequency when build vocab. A word will be assigned to OOV if its
   appearing times smaller than `word_min_fre`.
+  - `bichar_min_char` (integer) ------ The smallest bichar frequency when build vocab. A bichar will be assigned to OOV if its
+  appearing times smaller than `bichar_min_fre`.
   
 - [Data]
   - `data_path` (path) ------ path of data that `preprocess.py` outputs.

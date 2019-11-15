@@ -33,6 +33,10 @@ class MyConf(ConfigParser):
         return self.getint('Preprocess', 'word_min_fre')
 
     @property
+    def bichar_min_fre(self):
+        return self.getint('Preprocess', 'bichar_min_fre')
+
+    @property
     def data_path(self):
         return self.get('Data', 'data_path')
 
