@@ -12,6 +12,7 @@ from utils.optim import Optim
 from config.config import MyConf
 from utils.data_utils import load_data
 from utils.visualLogger import VisualLogger
+from utils.data_utils import load_pretrained_embeddings
 from model.ParaNNTranSegmentor import ParaNNTranSegmentor
 
 
@@ -101,11 +102,20 @@ def main():
     else:
         config.device = torch.device('cpu')
         print('GPU is not available, use CPU default.\n')
-    model = ParaNNTranSegmentor(train_dataset.get_id2char(),
-                                train_dataset.get_word2id(),
+
+    pretra_char_embed, pretra_bichar_embed = load_pretrained_embeddings(train_dataset, config)
+    model = ParaNNTranSegmentor(pretra_char_embed,
                                 train_dataset.get_char_vocab_size(),
-                                train_dataset.get_word_vocab_size(),
-                                config)
+                                config.char_embed_dim,
+                                config.char_embed_max_norm,
+                                pretra_bichar_embed,
+                                train_dataset.get_bichar_vocab_size(),
+                                config.bichar_embed_dim,
+                                config.bichar_embed_max_norm,
+                                config.encoder_lstm_hid_size,
+                                config.subword_lstm_hid_size,
+                                config.word_lstm_hid_size,
+                                config.device)
     if config.use_cuda:
         model.to(config.device)
     print(model, end='\n\n\n')
@@ -118,13 +128,13 @@ def main():
     print('Training starts...')
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
     for epoch_i in range(config.epoch):
-        for batch_i, (batch, golds) in enumerate(train_data):
-            batch = batch.to(config.device)
+        for batch_i, (insts, golds) in enumerate(train_data):
+            insts = list(map(lambda x: x.to(config.device), insts))
             golds = golds.to(config.device)
             model.train()
 
             optimizer.zero_grad()
-            pred = model(batch, golds)
+            pred = model(insts, golds)
             loss, golds_word, pred_word, seg_word, char, cor_char = cal_preformance(pred, golds, criterion, config.device)
             total_loss += loss.item()
             golds_words += golds_word
