@@ -14,8 +14,8 @@ from utils.dataset import CWSDataset, pad_collate_fn
 
 def gen_embed_nnembed(embeddings_dic, id2item, length):
     oov_num = 0
-    embed = nn.Embedding(len(id2item), length, padding_idx=Constants.padId).weight.data
-    init.xavier_uniform(embed)
+    embed = nn.Embedding(len(id2item), length, padding_idx=Constants.padId).weight
+    init.xavier_uniform_(embed)
     embed = embed.numpy()
     for idx, item in enumerate(id2item):
         if item in embeddings_dic:
@@ -64,22 +64,29 @@ def read_embed_file(id2item, filename, length, gen_oov_mode, uniform_par):
         return torch.tensor(embed)
 
 
-def load_pretrained_char_embed(id2char, config):
+def load_pretrained_embeddings(train_dataset, config):
     print('Loading char embeddings starts...')
-    print('Loading %s pretrained embeddings from %s' % ('char', config.pretrained_char_embed_file))
-    embeddings = read_embed_file(id2char, config.pretrained_char_embed_file, config.char_embed_dim,
-                                 config.char_gen_oov_mode, config.char_gen_oov_uniform)
+    if config.pretrained_embed_char:
+        print('Loading char pretrained embeddings from %s' % config.pretrained_char_embed_file)
+        char_embeddings = read_embed_file(train_dataset.get_id2char, config.pretrained_char_embed_file,
+                                          config.char_embed_dim, config.char_gen_oov_mode, config.char_gen_oov_uniform)
+    else:
+        char_embeddings = init.xavier_uniform_(nn.Embedding(train_dataset.get_char_vocab_size(), config.char_embed_dim,
+                                                            padding_idx=Constants.padId, max_norm=config.char_embed_max_norm).weight)
+        print('char pretrained embeddings was loaded by random.')
     print('Loading char embeddings ends.\n')
-    return embeddings
 
+    print('Loading bichar embeddings starts...')
+    if config.pretrained_embed_bichar:
+        print('Loading bichar pretrained embeddings from %s' % config.pretrained_bichar_embed_file)
+        bichar_embeddings = read_embed_file(train_dataset.get_id2bichar, config.pretrained_bichar_embed_file,
+                                            config.bichar_embed_dim, config.bichar_gen_oov_mode, config.bichar_gen_oov_uniform)
 
-def load_pretrained_word_embed(id2word, config):
-    print('Loading word embeddings starts...')
-    print('Loading %s pretrained embeddings from %s' % ('word', config.pretrained_word_embed_file))
-    embeddings = read_embed_file(id2word, config.pretrained_word_embed_file, config.word_embed_dim,
-                                 config.word_gen_oov_mode, config.word_gen_oov_uniform)
-    print('Loading word embeddings ends.\n')
-    return embeddings
+    else:
+        bichar_embeddings = init.xavier_uniform_(nn.Embedding(train_dataset.get_bichar_vocab_size(), config.bichar_embed_dim,
+                                                            padding_idx=Constants.padId, max_norm=config.bichar_embed_max_norm).weight)
+    print('Loading bichar embeddings ends.\n')
+    return char_embeddings, bichar_embeddings
 
 
 def load_data(config):
