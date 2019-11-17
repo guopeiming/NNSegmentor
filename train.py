@@ -5,6 +5,7 @@
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
 import os
 import sys
+import time
 import torch
 import argparse
 from config import Constants
@@ -30,6 +31,7 @@ def cal_preformance(pred, golds, criterion, device):
     golds_last_seg_idx = torch.tensor([seq_len]*batch_size, dtype=torch.long).to(device)
     pred_last_seg_idx = torch.tensor([seq_len]*batch_size, dtype=torch.long).to(device)
     pred_label = torch.argmax(pred, 2)
+    pred_label[:, 0] = Constants.SEP
     seg_word, char, cor_char, pred_word, golds_word = 0, 0, 0, 0, 0
     for idx in range(seq_len-1, -1, -1):
         pred_seg_mask = pred_label[:, idx] == Constants.SEP
@@ -116,7 +118,7 @@ def main():
                                 config.subword_lstm_hid_size,
                                 config.word_lstm_hid_size,
                                 config.device)
-    if config.use_cuda:
+    if config.use_cuda and torch.cuda.is_available():
         model.to(config.device)
     print(model, end='\n\n\n')
 
@@ -126,6 +128,7 @@ def main():
 
     # ========= Training ========= #
     print('Training starts...')
+    start = time.time()
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
     for epoch_i in range(config.epoch):
         for batch_i, (insts, golds) in enumerate(train_data):
@@ -168,6 +171,8 @@ def main():
                 filename = '%d.model' % (batch_i+1+epoch_i*len(train_data))
                 modelpath = os.path.join(config.save_path, filename)
                 torch.save(model, modelpath)
+    exe_time = time.time() - start
+    print('Executing time: %dh:%dm:%ds.' % (exe_time/3600, (exe_time/60) % 60, exe_time % 60))
     visual_logger.close()
     print('Training ends.')
 
