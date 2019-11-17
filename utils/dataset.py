@@ -14,7 +14,9 @@ class CWSDataset(Dataset):
     """
     def __init__(self, dic, data):
         super(CWSDataset, self).__init__()
-        assert len(data['insts']) == len(data['golds']), "The number of insts and golds must be equal."
+        assert len(data['insts_char']) == len(data['golds'])\
+            and len(data['insts_bichar_l']) == len(data['golds'])\
+            and len(data['insts_bichar_r']) == len(data['golds']), "The number of insts and golds must be equal."
         self.char2id = dic['char2id']
         self.id2char = dic['id2char']
         self.bichar2id = dic['bichar2id']

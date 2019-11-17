@@ -68,7 +68,7 @@ def load_pretrained_embeddings(train_dataset, config):
     print('Loading char embeddings starts...')
     if config.pretrained_embed_char:
         print('Loading char pretrained embeddings from %s' % config.pretrained_char_embed_file)
-        char_embeddings = read_embed_file(train_dataset.get_id2char, config.pretrained_char_embed_file,
+        char_embeddings = read_embed_file(train_dataset.get_id2char(), config.pretrained_char_embed_file,
                                           config.char_embed_dim, config.char_gen_oov_mode, config.char_gen_oov_uniform)
     else:
         char_embeddings = init.xavier_uniform_(nn.Embedding(train_dataset.get_char_vocab_size(), config.char_embed_dim,
@@ -79,9 +79,8 @@ def load_pretrained_embeddings(train_dataset, config):
     print('Loading bichar embeddings starts...')
     if config.pretrained_embed_bichar:
         print('Loading bichar pretrained embeddings from %s' % config.pretrained_bichar_embed_file)
-        bichar_embeddings = read_embed_file(train_dataset.get_id2bichar, config.pretrained_bichar_embed_file,
+        bichar_embeddings = read_embed_file(train_dataset.get_id2bichar(), config.pretrained_bichar_embed_file,
                                             config.bichar_embed_dim, config.bichar_gen_oov_mode, config.bichar_gen_oov_uniform)
-
     else:
         bichar_embeddings = init.xavier_uniform_(nn.Embedding(train_dataset.get_bichar_vocab_size(), config.bichar_embed_dim,
                                                             padding_idx=Constants.padId, max_norm=config.bichar_embed_max_norm).weight)
