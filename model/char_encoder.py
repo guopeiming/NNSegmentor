@@ -3,12 +3,9 @@
 # @File : dataset.py
 # @Last Modify Time : 2019/10/18 08:33
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
-import numpy as np
-import torch.nn.init as init
-from utils.data_utils import load_pretrained_char_embed
-
-
+import torch
 import torch.nn as nn
+import torch.nn.init as init
 from config import Constants
 
 
@@ -16,28 +13,71 @@ class CharEncoder(nn.Module):
     """
     submodel of NNTransSegmentor ------ CharEncoder
     """
-    def __init__(self, char_vocab_size, id2char, config):
+    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed, bichar_embed_num,
+                 bichar_embed_dim, bichar_embed_max_norm, encoder_lstm_hid_size):
         super(CharEncoder, self).__init__()
 
-        if config.pretrained_embed_char:
-            embeddings = load_pretrained_char_embed(id2char, config)
-            self.embed = nn.Embedding.from_pretrained(embeddings, freeze=config.fine_tune, padding_idx=Constants.padId,
-                                                      max_norm=config.char_embed_max_norm)
-        else:
-            self.embed = nn.Embedding(char_vocab_size, config.char_embed_dim, padding_idx=Constants.padId,
-                                      max_norm=config.char_embed_max_norm)
-            self.embed.weight.requires_grad_(config.fine_tune)
-            init.normal_(self.embed.weight, mean=0.0, std=np.sqrt(5. / config.char_embed_dim))
+        assert pretra_char_embed.shape[0] == char_embed_num and \
+            pretra_char_embed.shape[1] == char_embed_dim and \
+            pretra_bichar_embed.shape[0] == bichar_embed_num and \
+            pretra_bichar_embed.shape[1] == bichar_embed_dim, 'pretrained embeddings shape error.'
 
-        self.lstm = nn.LSTM(config.char_embed_dim, config.char_lstm_hid_dim, config.char_lstm_layers,
-                            bias=True, dropout=0., bidirectional=True)
-        init.normal_(self.lstm.weight_ih_l0, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
-        init.normal_(self.lstm.weight_hh_l0, mean=0.0, std=np.sqrt(3. / config.char_embed_dim))
-        init.uniform_(self.lstm.bias_ih_l0)
-        init.uniform_(self.lstm.bias_hh_l0)
+        self.char_embed_static = nn.Embedding.from_pretrained(pretra_char_embed, True, Constants.padId, char_embed_max_norm)
+        self.char_embed_no_static = nn.Embedding(char_embed_num, char_embed_dim, Constants.padId, char_embed_max_norm)
+
+        self.bichar_embed_static = nn.Embedding.from_pretrained(pretra_bichar_embed, True, Constants.padId, bichar_embed_max_norm)
+        self.bichar_embed_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim, Constants.padId, bichar_embed_max_norm)
+
+        self.embed_l = nn.Sequential(
+            nn.Linear((char_embed_dim+bichar_embed_dim)*2, char_embed_dim+bichar_embed_dim, bias=True),
+            nn.Tanh()
+        )
+        self.embed_r = nn.Sequential(
+            nn.Linear((char_embed_dim+bichar_embed_dim)*2, char_embed_dim+bichar_embed_dim, bias=True),
+            nn.Tanh()
+        )
+
+        self.lstm_l = nn.LSTMCell(char_embed_dim+bichar_embed_dim, encoder_lstm_hid_size, bias=True)
+        self.lstm_r = nn.LSTMCell(char_embed_dim+bichar_embed_dim, encoder_lstm_hid_size, bias=True)
+
+        self.encoder_lstm_hid_size = encoder_lstm_hid_size
+
+        self.__init_para()
 
     def forward(self, insts):
-        embeddings = self.embed(insts).permute(1, 0, 2)
-        output, (h_n, c_n) = self.lstm(embeddings)
-        return output
+        insts_char, insts_bichar_l, insts_bichar_r = insts[0], insts[1], insts[2]  # (batch_size, seq_len)
+        batch_size, seq_len = insts_char.shape[0], insts_char.shape[1]
+        char_embeddings = self.char_embed_static(insts_char).permute(1, 0, 2)  # (seq_len, batch_size, embed_size)
+        char_embeddings_no_static = self.char_embed_no_static(insts_char).permute(1, 0, 2)
+        char_embeddings = torch.cat([char_embeddings, char_embeddings_no_static], 2)
+        bichar_embeddins_l = self.bichar_embed_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddins_l_no_static = self.bichar_embed_no_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddins_l = torch.cat([bichar_embeddins_l, bichar_embeddins_l_no_static], 2)
+        bichar_embeddins_r = self.bichar_embed_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddins_r_no_static = self.bichar_embed_no_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddins_r = torch.cat([bichar_embeddins_r, bichar_embeddins_r_no_static], 2)
+
+        h_l, c_l, h_r, c_r = torch.zeros((4, batch_size, self.encoder_lstm_hid_size)).chunk(4, 0)
+        encoder_output = []
+        for step in range(seq_len):
+            embeddins_l = self.embed_l(torch.cat([char_embeddings[step], bichar_embeddins_l[step]], 1))
+            embeddins_r = self.embed_r(torch.cat([char_embeddings[step], bichar_embeddins_r[step]], 1))
+            outp_l, (h_l, c_l) = self.lstm_l(embeddins_l, (h_l, c_l))  # (batch_size, encoder_lstm_hid_size)
+            outp_r, (h_r, c_r) = self.lstm_r(embeddins_r, (h_r, c_r))
+            encoder_output.append(torch.cat([outp_l.unsqueeze(0), outp_r.unsqueeze(0)], 1))  # (1, batch_size, encoder_lstm_hid_size*2)
+        return torch.cat(encoder_output, 0)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
+
+    def __init_para(self):
+        init.xavier_uniform_(self.char_embed_no_static.weight)
+        init.xavier_uniform_(self.bichar_embed_no_static.weight)
+        init.xavier_uniform_(self.lstm_l.wight_ih_l0)
+        init.xavier_uniform_(self.lstm_l.wight_hh_l0)
+        init.uniform_(self.lstm_l.bias_ih_l0)
+        init.uniform_(self.lstm_l.bias_hh_l0)
+        init.xavier_uniform_(self.lstm_l[0].weight)
+        init.xavier_uniform_(self.lstm_r[0].weight)
+        init.uniform_(self.lstm_l[0].bias)
+        init.uniform_(self.lstm_r[0].bias)
+        self.char_embed_no_static.weight.requires_grad_(True)
+        self.bichar_embed_no_static.weight.requires_grad_(True)
 

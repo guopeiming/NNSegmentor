@@ -18,20 +18,24 @@ class ParaNNTranSegmentor(nn.Module):
     ParaNNTranSegmentor
     """
 
-    def __init__(self, id2char, word2id, char_vocab_size, word_vocab_size, config):
+    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed,
+                 bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm, encoder_lstm_hid_size,
+                 subword_lstm_hid_size, word_lstm_hid_size, device):
         super(ParaNNTranSegmentor, self).__init__()
 
-        self.char_encoder = CharEncoder(char_vocab_size, id2char, config)
-        self.subwStackLSTM = SubwordLSTMCell(config.char_lstm_hid_dim*2, config.word_lstm_hid_dim, config.device)
-        self.wordStackLSTM = StackLSTMCell(config.word_lstm_hid_dim, config.word_lstm_hid_dim, config.device)
-        self.classifier = nn.Linear(config.word_lstm_hid_dim+2*config.char_lstm_hid_dim, 2, bias=True)
-        self.device = config.device
+        self.char_encoder = CharEncoder(pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm,
+                                        pretra_bichar_embed, bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm,
+                                        encoder_lstm_hid_size)
+        self.subwStackLSTM = SubwordLSTMCell(encoder_lstm_hid_size*2, subword_lstm_hid_size, device)
+        self.wordStackLSTM = StackLSTMCell(subword_lstm_hid_size, word_lstm_hid_size, device)
+        self.classifier = nn.Linear(word_lstm_hid_size+2*encoder_lstm_hid_size, 2, bias=True)
+        self.device = device
         self.subword_action_map = torch.tensor([1, 2, 2]).to(self.device)
         self.word_action_map = torch.tensor([0, 1, 1]).to(self.device)
         self.__init_para()
 
     def forward(self, insts, golds=None):
-        chars = self.char_encoder(insts)  # [char_num, batch, embeddings_dim]
+        chars = self.char_encoder(insts)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
 
         batch_size, seq_len = insts.shape[0], insts.shape[1]
         self.subwStackLSTM.init_stack(2*seq_len+2, batch_size)
