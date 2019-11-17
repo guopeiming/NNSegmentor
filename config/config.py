@@ -45,32 +45,32 @@ class MyConf(ConfigParser):
         return self.getboolean('Embed', 'pretrained_embed_char')
 
     @property
-    def pretrained_embed_word(self):
-        return self.getboolean('Embed', 'pretrained_embed_word')
+    def pretrained_embed_bichar(self):
+        return self.getboolean('Embed', 'pretrained_embed_bichar')
 
     @property
     def char_gen_oov_uniform(self):
         return self.getfloat('Embed', 'char_gen_oov_uniform')
 
     @property
-    def word_gen_oov_uniform(self):
-        return self.getfloat('Embed', 'word_gen_oov_uniform')
+    def bichar_gen_oov_uniform(self):
+        return self.getfloat('Embed', 'bichar_gen_oov_uniform')
 
     @property
     def pretrained_char_embed_file(self):
         return self.get('Embed', 'pretrained_char_embed_file')
 
     @property
-    def pretrained_word_embed_file(self):
-        return self.get('Embed', 'pretrained_word_embed_file')
+    def pretrained_bichar_embed_file(self):
+        return self.get('Embed', 'pretrained_bichar_embed_file')
 
     @property
     def char_gen_oov_mode(self):
         return self.get('Embed', 'char_gen_oov_mode')
 
     @property
-    def word_gen_oov_mode(self):
-        return self.get('Embed', 'word_gen_oov_mode')
+    def bichar_gen_oov_mode(self):
+        return self.get('Embed', 'bichar_gen_oov_mode')
 
     @property
     def use_cuda(self):
@@ -125,8 +125,8 @@ class MyConf(ConfigParser):
         return self.getint('Model', 'char_embed_dim')
 
     @property
-    def word_embed_dim(self):
-        return self.getint('Model', 'word_embed_dim')
+    def bichar_embed_dim(self):
+        return self.getint('Model', 'bichar_embed_dim')
 
     @property
     def char_embed_max_norm(self):
@@ -135,26 +135,22 @@ class MyConf(ConfigParser):
         return None if abs(num - 0.) < Constants.EPSILON else num
 
     @property
-    def word_embed_max_norm(self):
-        num = self.getfloat('Model', 'word_embed_max_norm')
+    def bichar_embed_max_norm(self):
+        num = self.getfloat('Model', 'bichar_embed_max_norm')
         assert num >= 0., 'Word_max_norm must greater than 0.0'
         return None if abs(num - 0.) < Constants.EPSILON else num
 
     @property
-    def char_lstm_hid_dim(self):
-        return self.getint('Model', 'char_lstm_hid_dim')
+    def encoder_lstm_hid_size(self):
+        return self.getint('Model', 'encoder_lstm_hid_size')
 
     @property
-    def char_lstm_layers(self):
-        return self.getint('Model', 'char_lstm_layers')
+    def subword_lstm_hid_size(self):
+        return self.getint('Model', 'subword_lstm_hid_size')
 
     @property
-    def word_lstm_hid_dim(self):
-        return self.getint('Model', 'word_lstm_hid_dim')
-
-    @property
-    def word_lstm_layers(self):
-        return self.getint('Model', 'word_lstm_layers')
+    def word_lstm_hid_size(self):
+        return self.getint('Model', 'word_lstm_hid_size')
 
     @property
     def opti_name(self):

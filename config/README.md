@@ -20,15 +20,15 @@
   
 - [Embed]
   - `pretrained_embed_char` (False or True) ------ whether to use pretrained embeddings.
-  - `pretrained_embed_word` (False or True) ------ whether to use pretrained embeddings.
+  - `pretrained_embed_bichar` (False or True) ------ whether to use pretrained embeddings.
   - `pretrained_char_embed_file` (path) ------ pretrained char embeddings path.
-  - `pretrained_word_embed_file` (path) ------ pretrained word embeddings path.
+  - `pretrained_bichar_embed_file` (path) ------ pretrained bichar embeddings path.
   - `char_gen_oov_mode` (zeros/avg/nnembed/uniform) ------ mode for generating OOV embedding vector of char.
-  - `word_gen_oov_mode` (zeros/avg/nnembed/uniform) ------ mode for generating OOV embedding vector of word.
+  - `bichar_gen_oov_mode` (zeros/avg/nnembed/uniform) ------ mode for generating OOV embedding vector of bichar.
   - `char_gen_oov_uniform` (float) ------ parameter of uniform distribution to generate char oov embedding vector, which
   is valid when `char_gen_oov_uniform` is `uniform`.
-  - `word_gen_oov_uniform` (float) ------ parameter of uniform distribution to generate word oov embedding vector, which
-  is valid when `word_gen_oov_mode` is `uniform`.
+  - `bichar_gen_oov_uniform` (float) ------ parameter of uniform distribution to generate bichar oov embedding vector, which
+  is valid when `bichar_gen_oov_mode` is `uniform`.
 
 - [Train]
   - `use_cuda` (True or False) ------ use `cuda` speed up.
@@ -45,13 +45,12 @@
 
 - [Model]
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
-  - `word_embed_dim` (integer) ------ word embeddings vector dim, remember to alter it when you use pretrained word embeddings.
+  - `bichar_embed_dim` (integer) ------ bichar embeddings vector dim, remember to alter it when you use pretrained word embeddings.
   - `char_embed_max_norm` (float) ------ max norm used in char embeddings layer(nn.Embedding), which is None if set to 0.0.
-  - `word_embed_max_norm` (float) ------ max norm used in word embeddings layer(nn.Embedding), which is None if set to 0.0.
-  - `char_lstm_hid_dim` (integer) ------ hidden state dimension of char_LSTM.
-  - `char_lstm_layers` (integer) ------ layers of char_LSTM.
-  - `word_lstm_hid_dim` (integer) ------ hidden state dimension of word_LSTM.
-  - `word_lstm_layers` (integer) ------ layers of word_LSTM.
+  - `bichar_embed_max_norm` (float) ------ max norm used in bichar embeddings layer(nn.Embedding), which is None if set to 0.0.
+  - `encoder_lstm_hid_size` (integer) ------ hidden state dimension of encoder_LSTM.
+  - `subword_lstm_hid_size` (integer) ------ hidden state dimension of subword_LSTM.
+  - `word_lstm_hid_size` (integer) ------ hidden state dimension of word_LSTM.
 
 - [Optimizer]
   - `name` (string) ------ which optimizer to use.
