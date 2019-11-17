@@ -7,7 +7,6 @@
 
 import torch
 import torch.nn as nn
-from config import Constants
 from model.char_encoder import CharEncoder
 from model.StackLSTMCell import StackLSTMCell
 from model.SubwordLSTMCell import SubwordLSTMCell
@@ -37,7 +36,7 @@ class ParaNNTranSegmentor(nn.Module):
     def forward(self, insts, golds=None):
         chars = self.char_encoder(insts)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
 
-        batch_size, seq_len = insts.shape[0], insts.shape[1]
+        batch_size, seq_len = insts[0].shape[0], insts[0].shape[1]
         self.subwStackLSTM.init_stack(2*seq_len+2, batch_size)
         self.wordStackLSTM.init_stack(seq_len+1, batch_size)
 
@@ -46,9 +45,9 @@ class ParaNNTranSegmentor(nn.Module):
             if idx == 0:
                 subword = self.subwStackLSTM(torch.zeros((batch_size, chars.shape[2])).to(self.device)).to(self.device)
             else:
-                subword = self.subwStackLSTM(chars[idx-1, :, :])  # [batch_size, word_lstm_hid_size]
-            word_repre, _ = self.wordStackLSTM(subword)  # [batch_size, word_lstm_hid_size]
-            output = self.classifier(torch.cat([word_repre, chars[idx, :, :]], 1))  # [batch_size, 3]
+                subword = self.subwStackLSTM(chars[idx-1, :, :])  # (batch_size, word_lstm_hid_size)
+            word_repre, _ = self.wordStackLSTM(subword)  # (batch_size, word_lstm_hid_size)
+            output = self.classifier(torch.cat([word_repre, chars[idx, :, :]], 1))  # (batch_size, 2)
 
             if self.training:
                 subwordOP = self.subword_action_map.index_select(0, golds[:, idx])
@@ -60,7 +59,7 @@ class ParaNNTranSegmentor(nn.Module):
             self.wordStackLSTM.update_pos(wordOP)
 
             pred.append(output.unsqueeze(1))
-        return torch.cat(pred, 1)  # [batch, char_num, label_num]
+        return torch.cat(pred, 1)  # (batch_size, seq_len, 2)
 
     def __init_para(self):
         nn.init.xavier_uniform_(self.classifier.weight)
