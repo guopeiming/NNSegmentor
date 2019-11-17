@@ -140,8 +140,8 @@ def convert_insts(filename, char2id, bichar2id, type_):
     print('Drop rate of oov in char insts, bichar_l insts and bichar_r insts are \n'
           '%.05f =  %d / %d.\n%.05f =  %d / %d.\n%.05f =  %d / %d.\n' %
           (char_oov_num/sum_num, char_oov_num, sum_num,
-           bichar_l_oov_num/(sum_num+len(insts_bichar_l)), bichar_l_oov_num, sum_num+len(insts_bichar_r),
-           bichar_r_oov_num/(sum_num+len(insts_bichar_r)), bichar_r_oov_num, sum_num+len(insts_bichar_r)))
+           bichar_l_oov_num/sum_num, bichar_l_oov_num, sum_num,
+           bichar_r_oov_num/sum_num, bichar_r_oov_num, sum_num))
     return {'insts_char': insts_char,
             'insts_bichar_l': insts_bichar_l,
             'insts_bichar_r': insts_bichar_r,
