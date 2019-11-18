@@ -3,6 +3,8 @@
 # @File : preprocess.py
 # @Last Modify Time : 2019/10/14 20:16
 # @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
+from typing import Dict
+
 import torch
 import argparse
 import unicodedata
@@ -45,16 +47,14 @@ def convert_dic(dic, min_fre):
     assert Constants.padId == 1, "padId can not be changed."
     assert Constants.oovKey == '<unk>', "oovKey can not be changed."
     assert Constants.padKey == '<pad>', "padKey can not be changed."
-    item2id = {Constants.oovKey: Constants.oovId}
-    id2item = [Constants.oovKey]
-    item2id[Constants.padKey] = Constants.padId
-    id2item.append(Constants.padKey)
+    item2id = {Constants.oovKey: Constants.oovId, Constants.padKey: Constants.padId}
+    id2item = {Constants.oovId: Constants.oovKey, Constants.padId: Constants.padKey}
     id_ = 2
     drop_list, drop_times, no_drop_times = [], 0, 0
     for item in dic:
         if dic[item] >= min_fre:
             item2id[item] = id_
-            id2item.append(item)
+            id2item[id_] = item
             id_ += 1
             no_drop_times += dic[item]
         else:
