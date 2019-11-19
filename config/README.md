@@ -23,8 +23,8 @@
   - `pretrained_embed_bichar` (False or True) ------ whether to use pretrained embeddings.
   - `pretrained_char_embed_file` (path) ------ pretrained char embeddings path.
   - `pretrained_bichar_embed_file` (path) ------ pretrained bichar embeddings path.
-  - `char_gen_oov_mode` (zeros/avg/nnembed/uniform) ------ mode for generating OOV embedding vector of char.
-  - `bichar_gen_oov_mode` (zeros/avg/nnembed/uniform) ------ mode for generating OOV embedding vector of bichar.
+  - `char_gen_oov_mode` (zeros/avg/nnembed/uniform/randn) ------ mode for generating OOV embedding vector of char.
+  - `bichar_gen_oov_mode` (zeros/avg/nnembed/uniform/randn) ------ mode for generating OOV embedding vector of bichar.
   - `char_gen_oov_uniform` (float) ------ parameter of uniform distribution to generate char oov embedding vector, which
   is valid when `char_gen_oov_uniform` is `uniform`.
   - `bichar_gen_oov_uniform` (float) ------ parameter of uniform distribution to generate bichar oov embedding vector, which
@@ -46,6 +46,7 @@
 - [Model]
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
   - `bichar_embed_dim` (integer) ------ bichar embeddings vector dim, remember to alter it when you use pretrained word embeddings.
+  - `encoder_embed_dim` (integer) ------ char_encoder embeddings dim of composing static, no_static, char and bichar embeddings.
   - `char_embed_max_norm` (float) ------ max norm used in char embeddings layer(nn.Embedding), which is None if set to 0.0.
   - `bichar_embed_max_norm` (float) ------ max norm used in bichar embeddings layer(nn.Embedding), which is None if set to 0.0.
   - `encoder_lstm_hid_size` (integer) ------ hidden state dimension of encoder_LSTM.

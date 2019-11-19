@@ -129,6 +129,10 @@ class MyConf(ConfigParser):
         return self.getint('Model', 'bichar_embed_dim')
 
     @property
+    def encoder_embed_size(self):
+        return self.getint('Model', 'encoder_embed_size')
+
+    @property
     def char_embed_max_norm(self):
         num = self.getfloat('Model', 'char_embed_max_norm')
         assert num >= 0., 'Char_max_norm must greater than 0.0'
