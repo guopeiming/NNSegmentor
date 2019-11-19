@@ -108,3 +108,4 @@ venv.bak/
 data
 /model/visual
 /model/PPT
+/temp.py
