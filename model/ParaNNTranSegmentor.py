@@ -18,15 +18,15 @@ class ParaNNTranSegmentor(nn.Module):
     """
 
     def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed,
-                 bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm, encoder_lstm_hid_size,
+                 bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm, encoder_embed_dim, encoder_lstm_hid_size,
                  subword_lstm_hid_size, word_lstm_hid_size, device):
         super(ParaNNTranSegmentor, self).__init__()
 
         self.char_encoder = CharEncoder(pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm,
                                         pretra_bichar_embed, bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm,
-                                        encoder_lstm_hid_size)
+                                        encoder_embed_dim, encoder_lstm_hid_size)
         self.subwStackLSTM = SubwordLSTMCell(encoder_lstm_hid_size*2, subword_lstm_hid_size, device)
-        self.wordStackLSTM = StackLSTMCell(subword_lstm_hid_size, word_lstm_hid_size, device)
+        self.wordStackLSTM = StackLSTMCell(2*subword_lstm_hid_size, word_lstm_hid_size, device)
         self.classifier = nn.Linear(word_lstm_hid_size+2*encoder_lstm_hid_size, 2, bias=True)
         self.device = device
         self.subword_action_map = torch.tensor([1, 2, 2]).to(self.device)

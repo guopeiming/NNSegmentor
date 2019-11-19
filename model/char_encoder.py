@@ -14,7 +14,7 @@ class CharEncoder(nn.Module):
     submodel of NNTransSegmentor ------ CharEncoder
     """
     def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed, bichar_embed_num,
-                 bichar_embed_dim, bichar_embed_max_norm, encoder_lstm_hid_size):
+                 bichar_embed_dim, bichar_embed_max_norm, encoder_embed_dim, encoder_lstm_hid_size):
         super(CharEncoder, self).__init__()
 
         assert pretra_char_embed.shape[0] == char_embed_num and \
@@ -29,11 +29,11 @@ class CharEncoder(nn.Module):
         self.bichar_embed_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim, Constants.padId, bichar_embed_max_norm)
 
         self.embed_l = nn.Sequential(
-            nn.Linear((char_embed_dim+bichar_embed_dim)*2, char_embed_dim+bichar_embed_dim, bias=True),
+            nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
         self.embed_r = nn.Sequential(
-            nn.Linear((char_embed_dim+bichar_embed_dim)*2, char_embed_dim+bichar_embed_dim, bias=True),
+            nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
 
