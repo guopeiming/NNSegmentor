@@ -14,7 +14,7 @@ class CharEncoder(nn.Module):
     submodel of NNTransSegmentor ------ CharEncoder
     """
     def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed, bichar_embed_num,
-                 bichar_embed_dim, bichar_embed_max_norm, encoder_embed_dim, encoder_lstm_hid_size):
+                 bichar_embed_dim, bichar_embed_max_norm, encoder_embed_dim, encoder_lstm_hid_size, device):
         super(CharEncoder, self).__init__()
 
         assert pretra_char_embed.shape[0] == char_embed_num and \
@@ -37,10 +37,11 @@ class CharEncoder(nn.Module):
             nn.Tanh()
         )
 
-        self.lstm_l = nn.LSTMCell(char_embed_dim+bichar_embed_dim, encoder_lstm_hid_size, bias=True)
-        self.lstm_r = nn.LSTMCell(char_embed_dim+bichar_embed_dim, encoder_lstm_hid_size, bias=True)
+        self.lstm_l = nn.LSTMCell(encoder_embed_dim, encoder_lstm_hid_size, bias=True)
+        self.lstm_r = nn.LSTMCell(encoder_embed_dim, encoder_lstm_hid_size, bias=True)
 
         self.encoder_lstm_hid_size = encoder_lstm_hid_size
+        self.device = device
 
         self.__init_para()
 
@@ -57,7 +58,7 @@ class CharEncoder(nn.Module):
         bichar_embeddins_r_no_static = self.bichar_embed_no_static(insts_bichar_l).permute(1, 0, 2)
         bichar_embeddins_r = torch.cat([bichar_embeddins_r, bichar_embeddins_r_no_static], 2)
 
-        h_l, c_l, h_r, c_r = list(map(lambda x: x.squeeze(0), torch.zeros((4, batch_size, self.encoder_lstm_hid_size)).chunk(4, 0)))
+        h_l, c_l, h_r, c_r = list(map(lambda x: x.squeeze(0).to(self.device), torch.zeros((4, batch_size, self.encoder_lstm_hid_size)).chunk(4, 0)))
         encoder_output = []
         for step in range(seq_len):
             embeddins_l = self.embed_l(torch.cat([char_embeddings[step], bichar_embeddins_l[step]], 1))
