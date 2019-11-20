@@ -56,16 +56,16 @@ def cal_preformance(pred, golds, criterion, device):
     return loss, golds_word, pred_word, seg_word, char, cor_char
 
 
-def eval_model(model, criterion, dev_data, test_data, device):
+def eval_model(model, criterion, dev_data, test_data, device, visual_logger, stamp):
     model.eval()
     print('Validation starts...')
-    F_dev = eval_dataset(model, criterion, dev_data, device, 'dev')
-    F_test = eval_dataset(model, criterion, test_data, device, 'test')
+    F_dev = eval_dataset(model, criterion, dev_data, device, 'dev', visual_logger, stamp)
+    F_test = eval_dataset(model, criterion, test_data, device, 'test', visual_logger, stamp)
     print('Validation ends.')
     return F_dev, F_test
 
 
-def eval_dataset(model, criterion, data, device, typ):
+def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
     for insts, golds in data:
         insts = list(map(lambda x: x.to(device), insts))
@@ -86,6 +86,8 @@ def eval_dataset(model, criterion, data, device, typ):
     ACC = cor_chars/chars
     print('Model performance in %s dataset Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
           (typ, avg_loss, F, P, R, ACC))
+    scal = {'%s_loss' % typ: avg_loss, '%s_F' % typ: F, '%s_P' % typ: P, '%s_R' % typ: R}
+    visual_logger.visual_scalars(scal, stamp)
     return F
 
 
@@ -170,7 +172,8 @@ def main():
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
-                F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device)
+                stamp = batch_i+1+epoch_i*(len(train_data))
+                F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, stamp)
                 if F_dev > best_perf[2]:
                     best_perf[0], best_perf[1], best_perf[2], best_perf[3] = epoch_i+1, batch_i+1, F_dev, F_test
                 print('best performance: [%d/%d], [%d/%d], F_dev: %.05f, F_test: %.05f.' %
