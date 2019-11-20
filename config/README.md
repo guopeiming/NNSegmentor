@@ -46,10 +46,13 @@
 - [Model]
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
   - `bichar_embed_dim` (integer) ------ bichar embeddings vector dim, remember to alter it when you use pretrained word embeddings.
-  - `encoder_embed_dim` (integer) ------ char_encoder embeddings dim of composing static, no_static, char and bichar embeddings.
+  - `dropout_embed` (float) ------ dropout rate on char and bichar embeddings.
   - `char_embed_max_norm` (float) ------ max norm used in char embeddings layer(nn.Embedding), which is None if set to 0.0.
   - `bichar_embed_max_norm` (float) ------ max norm used in bichar embeddings layer(nn.Embedding), which is None if set to 0.0.
+  - `encoder_embed_dim` (integer) ------ char_encoder embeddings dim of composing static, no_static, char and bichar embeddings.
+  - `dropout_encoder_embed` (float) ------ dropout rate on encoder embeddings.
   - `encoder_lstm_hid_size` (integer) ------ hidden state dimension of encoder_LSTM.
+  - `dropout_encoder_hid` (float) ------ dropout rate on output of encoder.
   - `subword_lstm_hid_size` (integer) ------ hidden state dimension of subword_LSTM.
   - `word_lstm_hid_size` (integer) ------ hidden state dimension of word_LSTM.
 

@@ -129,8 +129,8 @@ class MyConf(ConfigParser):
         return self.getint('Model', 'bichar_embed_dim')
 
     @property
-    def encoder_embed_size(self):
-        return self.getint('Model', 'encoder_embed_size')
+    def dropout_embed(self):
+        return self.getfloat('Model', 'dropout_embed')
 
     @property
     def char_embed_max_norm(self):
@@ -145,8 +145,20 @@ class MyConf(ConfigParser):
         return None if abs(num - 0.) < Constants.EPSILON else num
 
     @property
+    def encoder_embed_dim(self):
+        return self.getint('Model', 'encoder_embed_dim')
+
+    @property
+    def dropout_encoder_embed(self):
+        return self.getfloat('Model', 'dropout_encoder_embed')
+
+    @property
     def encoder_lstm_hid_size(self):
         return self.getint('Model', 'encoder_lstm_hid_size')
+
+    @property
+    def dropout_encoder_hid(self):
+        return self.getfloat('Model', 'dropout_encoder_hid')
 
     @property
     def subword_lstm_hid_size(self):
