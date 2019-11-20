@@ -59,18 +59,19 @@ def cal_preformance(pred, golds, criterion, device):
 def eval_model(model, criterion, dev_data, test_data, device):
     model.eval()
     print('Validation starts...')
-    eval_dataset(model, criterion, dev_data, device, 'dev')
-    eval_dataset(model, criterion, test_data, device, 'test')
+    F_dev = eval_dataset(model, criterion, dev_data, device, 'dev')
+    F_test = eval_dataset(model, criterion, test_data, device, 'test')
     print('Validation ends.')
+    return F_dev, F_test
 
 
 def eval_dataset(model, criterion, data, device, typ):
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
-    for batch, golds in data:
-        batch = batch.to(device)
+    for insts, golds in data:
+        insts = list(map(lambda x: x.to(device), insts))
         golds = golds.to(device)
 
-        pred = model(batch)
+        pred = model(insts)
         loss, golds_word, pred_word, seg_word, char, cor_char = cal_preformance(pred, golds, criterion, device)
         total_loss += loss.item()
         golds_words += golds_word
@@ -85,6 +86,7 @@ def eval_dataset(model, criterion, data, device, typ):
     ACC = cor_chars/chars
     print('Model performance in %s dataset Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
           (typ, avg_loss, F, P, R, ACC))
+    return F
 
 
 def main():
@@ -131,6 +133,7 @@ def main():
     print('Training starts...')
     start = time.time()
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
+    best_perf = (0, 0, 0., 0.)  # (epoch_idx, batch_idx, F_dev, F_test)
     for epoch_i in range(config.epoch):
         for batch_i, (insts, golds) in enumerate(train_data):
             insts = list(map(lambda x: x.to(config.device), insts))
@@ -164,7 +167,9 @@ def main():
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break
             if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
-                eval_model(model, criterion, dev_data, test_data, config.device)
+                F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device)
+                if F_dev > best_perf[2]:
+                    best_perf[0], best_perf[1], best_perf[2], best_perf[3] = epoch_i+1, batch_i+1, F_dev, F_test
                 sys.stdout.flush()
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
