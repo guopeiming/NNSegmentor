@@ -45,7 +45,7 @@ class CharEncoder(nn.Module):
         self.lstm_l = nn.LSTMCell(encoder_embed_dim, encoder_lstm_hid_size, bias=True)
         self.lstm_r = nn.LSTMCell(encoder_embed_dim, encoder_lstm_hid_size, bias=True)
 
-        self.dropout_encoder_hid_layer(dropout_encoder_hid)
+        self.dropout_encoder_hid_layer = nn.Dropout(dropout_encoder_hid)
 
         self.dropout_embed = dropout_embed
         self.dropout_encoder_embed = dropout_encoder_embed
