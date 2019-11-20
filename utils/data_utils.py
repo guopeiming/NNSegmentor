@@ -19,7 +19,7 @@ def build_embed_tensor_from_file(embeddings, filename, vocab):
             cont_list = line.strip().split(' ')
             if cont_list[0] in vocab:
                 assert embed_size == len(cont_list) - 1, 'pretrained embeddings size error.'
-                embeddings[vocab[cont_list[0]]] = torch.tensor([x for x in cont_list[1:]])
+                embeddings[vocab[cont_list[0]]] = torch.tensor([float(x) for x in cont_list[1:]])
                 hit_set.add(cont_list[0])
     return embeddings, hit_set
 
