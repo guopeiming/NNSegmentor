@@ -133,7 +133,7 @@ def main():
     print('Training starts...')
     start = time.time()
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
-    best_perf = (0, 0, 0., 0.)  # (epoch_idx, batch_idx, F_dev, F_test)
+    best_perf = [0, 0, 0., 0.]  # (epoch_idx, batch_idx, F_dev, F_test)
     for epoch_i in range(config.epoch):
         for batch_i, (insts, golds) in enumerate(train_data):
             insts = list(map(lambda x: x.to(config.device), insts))
@@ -170,6 +170,8 @@ def main():
                 F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device)
                 if F_dev > best_perf[2]:
                     best_perf[0], best_perf[1], best_perf[2], best_perf[3] = epoch_i+1, batch_i+1, F_dev, F_test
+                print('best performance: [%d/%d], [%d/%d], F_dev: %.05f, F_test: %.05f.' %
+                      (best_perf[0], config.epoch, best_perf[1], len(train_data), best_perf[2], best_perf[3]))
                 sys.stdout.flush()
             if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
