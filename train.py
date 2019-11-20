@@ -116,8 +116,11 @@ def main():
                                 train_dataset.get_bichar_vocab_size(),
                                 config.bichar_embed_dim,
                                 config.bichar_embed_max_norm,
-                                config.encoder_embed_size,
+                                config.dropout_embed,
+                                config.encoder_embed_dim,
+                                config.dropout_encoder_embed,
                                 config.encoder_lstm_hid_size,
+                                config.dropout_encoder_hid,
                                 config.subword_lstm_hid_size,
                                 config.word_lstm_hid_size,
                                 config.device)
