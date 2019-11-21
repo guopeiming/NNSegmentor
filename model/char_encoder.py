@@ -47,9 +47,9 @@ class CharEncoder(nn.Module):
 
         self.dropout_encoder_hid_layer = nn.Dropout(dropout_encoder_hid)
 
-        self.dropout_embed = 1. - dropout_embed
-        self.dropout_encoder_embed = 1. - dropout_encoder_embed
-        self.dropout_encoder_hid = 1. - dropout_encoder_hid
+        self.dropout_embed = 1
+        self.dropout_encoder_embed = 1
+        self.dropout_encoder_hid = 1
         self.encoder_lstm_hid_size = encoder_lstm_hid_size
         self.device = device
 
