@@ -21,10 +21,10 @@ class SubwordLSTMCell(nn.Module):
         self.device = device
         self.lstm_r = StackLSTMCell(self.input_size, self.hidden_size, self.device)
         self.lstm_l = nn.LSTMCell(self.input_size, self.hidden_size, bias=True)
-        self.word_compose = nn.Sequential(
-            nn.Linear(2*self.hidden_size, 2*self.hidden_size),
-            nn.Tanh()
-        )
+        # self.word_compose = nn.Sequential(
+        #     nn.Linear(2*self.hidden_size, 2*self.hidden_size),
+        #     nn.Tanh()
+        # )
         self.__init_para()
 
     def init_stack(self, stack_size, batch_size):
@@ -44,9 +44,9 @@ class SubwordLSTMCell(nn.Module):
         """
         h, _ = self.lstm_r(char)
         h_l, _ = self.lstm_l(char)
-        subword = self.word_compose(torch.cat([h, h_l], 1))
-        return subword
-        # return torch.cat([h, h_l], 1)
+        # subword = self.word_compose(torch.cat([h, h_l], 1))
+        # return subword
+        return torch.cat([h, h_l], 1)
 
     def update_pos(self, op):
         """
