@@ -10,6 +10,7 @@ import torch
 import argparse
 from config import Constants
 from utils.optim import Optim
+import torch.nn.utils as utils
 from config.config import MyConf
 from utils.data_utils import load_data
 from utils.visualLogger import VisualLogger
@@ -86,8 +87,8 @@ def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
     ACC = cor_chars/chars
     print('Model performance in %s dataset Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
           (typ, avg_loss, F, P, R, ACC))
-    scal = {'%s_loss' % typ: avg_loss, '%s_F' % typ: F, '%s_P' % typ: P, '%s_R' % typ: R}
-    visual_logger.visual_scalars(scal, stamp)
+    scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
+    visual_logger.visual_scalars(scal, stamp, typ)
     return F
 
 
@@ -137,7 +138,7 @@ def main():
     # ========= Training ========= #
     print('Training starts...')
     start = time.time()
-    total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
+    total_loss, golds_words, pred_words, seg_words, chars, cor_chars, steps = 0.0, 0, 0, 0, 0, 0, 1
     best_perf = [0, 0, 0., 0.]  # (epoch_idx, batch_idx, F_dev, F_test)
     for epoch_i in range(config.epoch):
         for batch_i, (insts, golds) in enumerate(train_data):
@@ -156,9 +157,11 @@ def main():
             cor_chars += cor_char
 
             loss.backward()
+            if config.clip_grad:
+                utils.clip_grad_norm_(model.parameters(), config.clip_grad_max_norm)
             optimizer.step()
 
-            if (batch_i+1+epoch_i*(len(train_data))) % config.logInterval == 0:
+            if steps % config.logInterval == 0:
                 avg_loss = total_loss/chars
                 ACC = cor_chars/chars
                 P = seg_words/pred_words
@@ -168,23 +171,24 @@ def main():
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, F, P, R, ACC))
                 sys.stdout.flush()
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
-                visual_logger.visual_scalars(scal, batch_i+1+epoch_i*(len(train_data)))
+                visual_logger.visual_scalars(scal, steps, 'train')
+                visual_logger.visual_histogram(model, batch_i + 1 + epoch_i * (len(train_data)))
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break
-            if (batch_i+1+epoch_i*(len(train_data))) % config.valInterval == 0:
-                stamp = batch_i+1+epoch_i*(len(train_data))
-                F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, stamp)
+            if steps % config.valInterval == 0:
+                F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, steps)
                 if F_dev > best_perf[2]:
                     best_perf[0], best_perf[1], best_perf[2], best_perf[3] = epoch_i+1, batch_i+1, F_dev, F_test
                 print('best performance: [%d/%d], [%d/%d], F_dev: %.05f, F_test: %.05f.' %
                       (best_perf[0], config.epoch, best_perf[1], len(train_data), best_perf[2], best_perf[3]))
                 sys.stdout.flush()
-            if (batch_i+1+epoch_i*(len(train_data))) % config.saveInterval == 0:
+            if steps % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
                     os.mkdir(config.save_path)
-                filename = '%d.model' % (batch_i+1+epoch_i*len(train_data))
+                filename = '%d.model' % steps
                 modelpath = os.path.join(config.save_path, filename)
                 torch.save(model, modelpath)
+            steps += 1
     exe_time = time.time() - start
     print('Executing time: %dh:%dm:%ds.' % (exe_time/3600, (exe_time/60) % 60, exe_time % 60))
     visual_logger.close()
