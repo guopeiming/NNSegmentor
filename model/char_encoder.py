@@ -23,19 +23,19 @@ class CharEncoder(nn.Module):
             pretra_bichar_embed.shape[0] == bichar_embed_num and \
             pretra_bichar_embed.shape[1] == bichar_embed_dim, 'pretrained embeddings shape error.'
 
-        self.char_embed_static = nn.Embedding.from_pretrained(pretra_char_embed, True, Constants.padId, char_embed_max_norm)
-        self.char_embed_no_static = nn.Embedding(char_embed_num, char_embed_dim, Constants.padId, char_embed_max_norm)
+        self.char_embeddings_static = nn.Embedding.from_pretrained(pretra_char_embed, True, Constants.padId, char_embed_max_norm)
+        self.char_embeddings_no_static = nn.Embedding(char_embed_num, char_embed_dim, Constants.padId, char_embed_max_norm)
 
-        self.bichar_embed_static = nn.Embedding.from_pretrained(pretra_bichar_embed, True, Constants.padId, bichar_embed_max_norm)
-        self.bichar_embed_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim, Constants.padId, bichar_embed_max_norm)
+        self.bichar_embeddings_static = nn.Embedding.from_pretrained(pretra_bichar_embed, True, Constants.padId, bichar_embed_max_norm)
+        self.bichar_embeddings_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim, Constants.padId, bichar_embed_max_norm)
 
         self.dropout_embed_layer = nn.Dropout(dropout_embed)
 
-        self.embed_l = nn.Sequential(
+        self.embed_compose_l = nn.Sequential(
             nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
-        self.embed_r = nn.Sequential(
+        self.embed_compose_r = nn.Sequential(
             nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
@@ -59,12 +59,12 @@ class CharEncoder(nn.Module):
         insts_char, insts_bichar_l, insts_bichar_r = insts[0], insts[1], insts[2]  # (batch_size, seq_len)
         batch_size, seq_len = insts_char.shape[0], insts_char.shape[1]
 
-        char_embeddings = self.char_embed_static(insts_char).permute(1, 0, 2)  # (seq_len, batch_size, embed_size)
-        char_embeddings_no_static = self.char_embed_no_static(insts_char).permute(1, 0, 2)
-        bichar_embeddings_l = self.bichar_embed_static(insts_bichar_l).permute(1, 0, 2)
-        bichar_embeddings_l_no_static = self.bichar_embed_no_static(insts_bichar_l).permute(1, 0, 2)
-        bichar_embeddings_r = self.bichar_embed_static(insts_bichar_l).permute(1, 0, 2)
-        bichar_embeddings_r_no_static = self.bichar_embed_no_static(insts_bichar_l).permute(1, 0, 2)
+        char_embeddings = self.char_embeddings_static(insts_char).permute(1, 0, 2)  # (seq_len, batch_size, embed_size)
+        char_embeddings_no_static = self.char_embeddings_no_static(insts_char).permute(1, 0, 2)
+        bichar_embeddings_l = self.bichar_embeddings_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddings_l_no_static = self.bichar_embeddings_no_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddings_r = self.bichar_embeddings_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddings_r_no_static = self.bichar_embeddings_no_static(insts_bichar_l).permute(1, 0, 2)
 
         if self.training:
             char_embeddings = self.dropout_embed_layer(torch.cat([char_embeddings, char_embeddings_no_static], 2))
@@ -78,8 +78,8 @@ class CharEncoder(nn.Module):
         h_l, c_l, h_r, c_r = list(map(lambda x: x.squeeze(0).to(self.device), torch.zeros((4, batch_size, self.encoder_lstm_hid_size)).chunk(4, 0)))
         encoder_output = []
         for step in range(seq_len):
-            embeddins_l = self.embed_l(torch.cat([char_embeddings[step], bichar_embeddings_l[step]], 1))
-            embeddins_r = self.embed_r(torch.cat([char_embeddings[step], bichar_embeddings_r[step]], 1))
+            embeddins_l = self.embed_compose_l(torch.cat([char_embeddings[step], bichar_embeddings_l[step]], 1))
+            embeddins_r = self.embed_compose_r(torch.cat([char_embeddings[step], bichar_embeddings_r[step]], 1))
             if self.training:
                 embeddins_l = self.dropout_encoder_embed_layer(embeddins_l)
                 embeddins_r = self.dropout_encoder_embed_layer(embeddins_r)
@@ -97,8 +97,8 @@ class CharEncoder(nn.Module):
         return torch.cat(encoder_output, 0)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
 
     def __init_para(self):
-        init.xavier_uniform_(self.char_embed_no_static.weight)
-        init.xavier_uniform_(self.bichar_embed_no_static.weight)
+        init.xavier_uniform_(self.char_embeddings_no_static.weight)
+        init.xavier_uniform_(self.bichar_embeddings_no_static.weight)
         init.xavier_uniform_(self.lstm_l.weight_ih)
         init.xavier_uniform_(self.lstm_l.weight_hh)
         init.xavier_uniform_(self.lstm_r.weight_ih)
@@ -107,10 +107,10 @@ class CharEncoder(nn.Module):
         init.uniform_(self.lstm_l.bias_hh)
         init.uniform_(self.lstm_r.bias_ih)
         init.uniform_(self.lstm_r.bias_hh)
-        init.xavier_uniform_(self.embed_l[0].weight)
-        init.xavier_uniform_(self.embed_r[0].weight)
-        init.uniform_(self.embed_l[0].bias)
-        init.uniform_(self.embed_r[0].bias)
-        self.char_embed_no_static.weight.requires_grad_(True)
-        self.bichar_embed_no_static.weight.requires_grad_(True)
+        init.xavier_uniform_(self.embed_compose_l[0].weight)
+        init.xavier_uniform_(self.embed_compose_r[0].weight)
+        init.uniform_(self.embed_compose_l[0].bias)
+        init.uniform_(self.embed_compose_r[0].bias)
+        self.char_embeddings_no_static.weight.requires_grad_(True)
+        self.bichar_embeddings_no_static.weight.requires_grad_(True)
 
