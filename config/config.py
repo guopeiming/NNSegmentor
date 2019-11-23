@@ -180,3 +180,11 @@ class MyConf(ConfigParser):
     def weight_decay(self):
         return self.getfloat('Optimizer', 'weight_decay')
 
+    @property
+    def clip_grad(self):
+        return self.getboolean('Optimizer', 'clip_grad')
+
+    @property
+    def clip_grad_max_norm(self):
+        return self.getfloat('Optimizer', 'clip_grad_max_norm ')
+

@@ -60,6 +60,8 @@
   - `name` (string) ------ which optimizer to use.
   - `learning_rate` (float) ------ learning rate of optimizer.
   - `weight_decay` (float) ------ lamda
+  - `clip_grad` (True or False) ------ whether to ues util.clip.
+  - `clip_grad_max_norm` (float) ------ value of max_norm of grad in util.clip.
 
   
 ## Constants.py
