@@ -25,9 +25,9 @@ class VisualLogger:
             #     self.writer.add_histogram(tag, values.data, step)
             # else:
             #     self.writer.add_embedding(values.data, global_step=step, tag=tag)
-            self.writer.add_histogram(tag, values.data, step)
-            if values.data.grad is not None:
-                self.writer.add_histogram(tag+'grad', values.data.grad, step)
+            self.writer.add_histogram(tag, values, step)
+            if values.grad is not None:
+                self.writer.add_histogram(tag+'grad', values.grad, step)
 
     def visual_graph(self, model, input_to_model, verbose=False):
         self.writer.add_graph(model, input_to_model, verbose)
