@@ -12,9 +12,11 @@ from config import Constants
 from utils.optim import Optim
 import torch.nn.utils as utils
 from config.config import MyConf
-from utils.data_utils import load_data
+from torch.optim import lr_scheduler
+from utils.model_utils import load_data
 from utils.visualLogger import VisualLogger
-from utils.data_utils import load_pretrained_embeddings
+from utils.model_utils import get_lr_scheduler_lambda
+from utils.model_utils import load_pretrained_embeddings
 from model.ParaNNTranSegmentor import ParaNNTranSegmentor
 
 
@@ -133,6 +135,7 @@ def main():
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
     optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
+    scheduler = lr_scheduler.LambdaLR(optimizer.get_optimizer(), get_lr_scheduler_lambda(config.warmup_steps, config.lr_decay_factor))
     visual_logger = VisualLogger(config.visual_logger_path)
 
     # ========= Training ========= #
@@ -160,6 +163,7 @@ def main():
             if config.clip_grad:
                 utils.clip_grad_norm_(model.parameters(), config.clip_grad_max_norm)
             optimizer.step()
+            scheduler.step()
 
             if steps % config.logInterval == 0:
                 avg_loss = total_loss/chars
@@ -170,7 +174,7 @@ def main():
                 print('[%d/%d], [%d/%d] Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, F, P, R, ACC))
                 sys.stdout.flush()
-                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
+                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC, 'rl': scheduler.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 visual_logger.visual_histogram(model, batch_i + 1 + epoch_i * (len(train_data)))
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0

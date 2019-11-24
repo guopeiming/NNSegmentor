@@ -23,3 +23,6 @@ class Optim:
     def step(self):
         self._optimizer.step()
 
+    def get_optimizer(self):
+        return self._optimizer
+
