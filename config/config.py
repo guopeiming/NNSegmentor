@@ -186,5 +186,5 @@ class MyConf(ConfigParser):
 
     @property
     def clip_grad_max_norm(self):
-        return self.getfloat('Optimizer', 'clip_grad_max_norm ')
+        return self.getfloat('Optimizer', 'clip_grad_max_norm')
 
