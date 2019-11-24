@@ -188,3 +188,11 @@ class MyConf(ConfigParser):
     def clip_grad_max_norm(self):
         return self.getfloat('Optimizer', 'clip_grad_max_norm')
 
+    @property
+    def warmup_steps(self):
+        return self.getint('Optimizer', 'warmup_steps')
+
+    @property
+    def lr_decay_factor(self):
+        return self.getfloat('Optimizer', 'lr_decay_factor')
+
