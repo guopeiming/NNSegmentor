@@ -176,7 +176,6 @@ def main():
                 sys.stdout.flush()
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC, 'rl': scheduler.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
-                visual_logger.visual_histogram(model, batch_i + 1 + epoch_i * (len(train_data)))
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break
             if steps % config.valInterval == 0:
@@ -186,6 +185,8 @@ def main():
                 print('best performance: [%d/%d], [%d/%d], F_dev: %.05f, F_test: %.05f.' %
                       (best_perf[0], config.epoch, best_perf[1], len(train_data), best_perf[2], best_perf[3]))
                 sys.stdout.flush()
+            if steps % config.visuParaInterval == 1:
+                visual_logger.visual_histogram(model, steps)
             if steps % config.saveInterval == 0:
                 if not os.path.exists(config.save_path):
                     os.mkdir(config.save_path)
