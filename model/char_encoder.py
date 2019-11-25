@@ -63,8 +63,8 @@ class CharEncoder(nn.Module):
         char_embeddings_no_static = self.char_embeddings_no_static(insts_char).permute(1, 0, 2)
         bichar_embeddings_l = self.bichar_embeddings_static(insts_bichar_l).permute(1, 0, 2)
         bichar_embeddings_l_no_static = self.bichar_embeddings_no_static(insts_bichar_l).permute(1, 0, 2)
-        bichar_embeddings_r = self.bichar_embeddings_static(insts_bichar_l).permute(1, 0, 2)
-        bichar_embeddings_r_no_static = self.bichar_embeddings_no_static(insts_bichar_l).permute(1, 0, 2)
+        bichar_embeddings_r = self.bichar_embeddings_static(insts_bichar_r).permute(1, 0, 2)
+        bichar_embeddings_r_no_static = self.bichar_embeddings_no_static(insts_bichar_r).permute(1, 0, 2)
 
         if self.training:
             char_embeddings = self.dropout_embed_layer(torch.cat([char_embeddings, char_embeddings_no_static], 2))
