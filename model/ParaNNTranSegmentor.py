@@ -42,12 +42,14 @@ class ParaNNTranSegmentor(nn.Module):
         self.subwStackLSTM.init_stack(2*seq_len+2, batch_size)
         self.wordStackLSTM.init_stack(seq_len+1, batch_size)
 
-        pred = []
-        for idx in range(seq_len):
-            if idx == 0:
-                subword = self.subwStackLSTM(torch.zeros((batch_size, chars.shape[2])).to(self.device)).to(self.device)
-            else:
-                subword = self.subwStackLSTM(chars[idx-1, :, :])  # (batch_size, word_lstm_hid_size)
+        # pred = []
+        pred = [torch.tensor([[[-1., 1.]]]).expand((batch_size, 1, 2))]
+        for idx in range(1, seq_len, 1):
+            # if idx == 0:
+            #     subword = self.subwStackLSTM(torch.zeros((batch_size, chars.shape[2])).to(self.device)).to(self.device)
+            # else:
+            #     subword = self.subwStackLSTM(chars[idx-1, :, :])  # (batch_size, word_lstm_hid_size)
+            subword = self.subwStackLSTM(chars[idx - 1, :, :])  # (batch_size, word_lstm_hid_size)
             word_repre, _ = self.wordStackLSTM(subword)  # (batch_size, word_lstm_hid_size)
             output = self.classifier(torch.cat([word_repre, chars[idx, :, :]], 1))  # (batch_size, 2)
 
