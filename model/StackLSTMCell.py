@@ -42,7 +42,7 @@ class StackLSTMCell(nn.Module):
                 self.stack_hidden[i] = h[i].unsqueeze(0)
                 self.stack_cell[i] = c[i].unsqueeze(0)
             if op[i] == 2:
-                self.stack_hidden[i] = torch.zeros((1, self.hidden_size))
+                self.stack_hidden[i] = torch.zeros((1, self.hidden_size)).to(self.device)
 
     def init_stack(self, batch_size):
         """
