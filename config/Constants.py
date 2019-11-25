@@ -14,4 +14,4 @@ SEP = 1
 actionPadId = 2
 embeddings_layer_keyword = 'embeddings'
 EPSILON = 1e-10
-MAX_OOV_NUM = 10
+MAX_OOV_NUM = 1500
