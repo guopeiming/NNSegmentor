@@ -32,20 +32,20 @@ class ParaNNTranSegmentor(nn.Module):
         self.classifier = nn.Linear(word_lstm_hid_size+2*encoder_lstm_hid_size, 2, bias=True)
         self.device = device
         self.subword_action_map = torch.tensor([1, 2, 2]).to(self.device)
-        self.word_action_map = torch.tensor([0, 1, 1]).to(self.device)
+        self.word_action_map = torch.tensor([0, 1, 0]).to(self.device)
         self.__init_para()
 
     def forward(self, insts, golds=None):
         chars = self.char_encoder(insts)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
 
         batch_size, seq_len = insts[0].shape[0], insts[0].shape[1]
-        self.subwStackLSTM.init_stack(2*seq_len+2, batch_size)
-        self.wordStackLSTM.init_stack(seq_len+1, batch_size)
+        self.subwStackLSTM.init_stack(batch_size)
+        self.wordStackLSTM.init_stack(batch_size)
 
         pred = [torch.tensor([[[-1., 1.]]]).expand((batch_size, 1, 2)).to(self.device)]
         for idx in range(1, seq_len, 1):
-            subword = self.subwStackLSTM(chars[idx - 1, :, :])  # (batch_size, word_lstm_hid_size)
-            word_repre, _ = self.wordStackLSTM(subword)  # (batch_size, word_lstm_hid_size)
+            subword, sub_h, sub_c = self.subwStackLSTM(chars[idx - 1, :, :])  # (batch_size, word_lstm_hid_size)
+            word_repre, word_c = self.wordStackLSTM(subword)  # (batch_size, word_lstm_hid_size)
             output = self.classifier(torch.cat([word_repre, chars[idx, :, :]], 1))  # (batch_size, 2)
 
             if self.training:
@@ -54,8 +54,8 @@ class ParaNNTranSegmentor(nn.Module):
             else:
                 subwordOP = self.subword_action_map.index_select(0, torch.argmax(output, 1))
                 wordOP = self.word_action_map.index_select(0, torch.argmax(output, 1))
-            self.subwStackLSTM.update_pos(subwordOP)
-            self.wordStackLSTM.update_pos(wordOP)
+            self.subwStackLSTM.update_pos(subwordOP, sub_h, sub_c)
+            self.wordStackLSTM.update_pos(wordOP, word_repre, word_c)
 
             pred.append(output.unsqueeze(1))
         return torch.cat(pred, 1)  # (batch_size, seq_len, 2)

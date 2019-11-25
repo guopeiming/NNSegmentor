@@ -27,14 +27,14 @@ class SubwordLSTMCell(nn.Module):
         # )
         self.__init_para()
 
-    def init_stack(self, stack_size, batch_size):
+    def init_stack(self, batch_size):
         """
         init the stack
         :param stack_size: int, equals 2*seq_len+2, means the max size of stack.
         :param batch_size: int, the number of inst for a batch.
         :return:
         """
-        self.lstm_r.init_stack(stack_size, batch_size)
+        self.lstm_r.init_stack(batch_size)
 
     def forward(self, char):
         """
@@ -42,19 +42,19 @@ class SubwordLSTMCell(nn.Module):
         :param char: (batch_size, self.input_size), output of char_encoder.
         :return: subword/word representation
         """
-        h, _ = self.lstm_r(char)
+        h, c = self.lstm_r(char)
         h_l, _ = self.lstm_l(char)
         # subword = self.word_compose(torch.cat([h, h_l], 1))
         # return subword
-        return torch.cat([h, h_l], 1)
+        return torch.cat([h, h_l], 1), h, c
 
-    def update_pos(self, op):
+    def update_pos(self, op, h, c):
         """
         update the self.pos_word and self.pos_char depending on operation.
         :param op: (batch_size, ) -1 means pop, 0 means hold, 1 means push.
         :return:
         """
-        self.lstm_r.update_pos(op)
+        self.lstm_r.update_pos(op, h, c)
 
     def __init_para(self):
         init.xavier_uniform_(self.lstm_l.weight_hh)
