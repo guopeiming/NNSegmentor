@@ -39,7 +39,10 @@
   - `drop_last` (True or False) ------ set to True to drop the last incomplete batch, if the dataset size is not divisible by the batch size. 
   If False and the size of dataset is not divisible by the batch size, then the last batch will be smaller. 
   - `epoch` (integer) ------ train epoch.
-  - `fine_tune` (False or True) ------ whether to fine tune embedding.
+  - `logInterval` (integer) ------ interval on print log info.
+  - `valInterval` (integer) ------ interval on validation.
+  - `visuParaInterval` (integer) ------ interval on visual model parameters.
+  - `saveInterval` (integer) ------ interval on save model.
   - `savepath` (path) ------ path for saving model.
   - `visual_logger_path` (path) ------ path for visual logger.
 

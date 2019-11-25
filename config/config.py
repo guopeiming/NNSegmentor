@@ -105,12 +105,12 @@ class MyConf(ConfigParser):
         return self.getint('Train', 'valInterval')
 
     @property
-    def saveInterval(self):
-        return self.getint('Train', 'saveInterval')
+    def visuParaInterval(self):
+        return self.getint('Train', 'visuParaInterval')
 
     @property
-    def fine_tune(self):
-        return self.getboolean('Train', 'fine_tune')
+    def saveInterval(self):
+        return self.getint('Train', 'saveInterval')
 
     @property
     def save_path(self):
