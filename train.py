@@ -34,7 +34,6 @@ def cal_preformance(pred, golds, criterion, device):
     golds_last_seg_idx = torch.tensor([seq_len]*batch_size, dtype=torch.long).to(device)
     pred_last_seg_idx = torch.tensor([seq_len]*batch_size, dtype=torch.long).to(device)
     pred_label = torch.argmax(pred, 2)
-    # pred_label[:, 0] = Constants.SEP
     seg_word, char, cor_char, pred_word, golds_word = 0, 0, 0, 0, 0
     for idx in range(seq_len-1, -1, -1):
         pred_seg_mask = pred_label[:, idx] == Constants.SEP
