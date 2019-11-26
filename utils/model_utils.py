@@ -85,7 +85,3 @@ def load_data(config):
     print('train_dataset, dev_dataset, test_dataset loading completes.')
     return train_data, dev_data, test_data, train_dataset
 
-
-def get_lr_scheduler_lambda(warmup_step, decay_factor):
-    return lambda step: step/warmup_step if step <= warmup_step else decay_factor**(step-warmup_step)
-
