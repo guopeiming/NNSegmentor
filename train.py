@@ -12,10 +12,10 @@ from config import Constants
 from utils.optim import Optim
 import torch.nn.utils as utils
 from config.config import MyConf
-from torch.optim import lr_scheduler
 from utils.model_utils import load_data
 from utils.visualLogger import VisualLogger
-from utils.model_utils import get_lr_scheduler_lambda
+from utils.MyLRScheduler import MyLRScheduler
+from utils.MyLRScheduler import get_lr_scheduler_lambda
 from utils.model_utils import load_pretrained_embeddings
 from model.NNTranSegmentor import ParaNNTranSegmentor
 
@@ -85,10 +85,9 @@ def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
     P = seg_words/pred_words
     R = seg_words/golds_words
     F = (2*P*R)/(P+R)
-    ACC = cor_chars/chars
-    print('Model performance in %s dataset Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
-          (typ, avg_loss, F, P, R, ACC))
-    scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
+    print('Model performance in %s dataset Loss: %.05f, F: %.05f, P: %.05f, R: %.05f' %
+          (typ, avg_loss, F, P, R))
+    scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R}
     visual_logger.visual_scalars(scal, stamp, typ)
     return F
 
@@ -105,7 +104,7 @@ def main():
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
     if config.use_cuda and torch.cuda.is_available():
-        config.device = torch.device('cuda:0')
+        config.device = torch.device('cuda:'+str(config.cuda_id))
         print('You will train model in cuda: %d.\n' % config.device.index)
     else:
         config.device = torch.device('cpu')
@@ -134,6 +133,7 @@ def main():
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
     optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
+    scheduler = MyLRScheduler(optimizer.get_optimizer(), get_lr_scheduler_lambda(config.learning_rate, config.warmup_steps, config.lr_decay_factor))
     visual_logger = VisualLogger(config.visual_logger_path)
 
     # ========= Training ========= #
@@ -164,14 +164,13 @@ def main():
 
             if steps % config.logInterval == 0:
                 avg_loss = total_loss/chars
-                ACC = cor_chars/chars
                 P = seg_words/pred_words
                 R = seg_words/golds_words
                 F = (2*P*R)/(P+R)
-                print('[%d/%d], [%d/%d] Loss: %.05f, F: %.05f, P: %.05f, R: %.05f, ACC: %.05f' %
-                      (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, F, P, R, ACC))
+                print('[%d/%d], [%d/%d] Loss: %.05f, F: %.05f, P: %.05f, R: %.05f' %
+                      (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, F, P, R))
                 sys.stdout.flush()
-                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'ACC': ACC}
+                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'rl': scheduler.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break

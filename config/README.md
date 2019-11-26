@@ -32,6 +32,7 @@
 
 - [Train]
   - `use_cuda` (True or False) ------ use `cuda` speed up.
+  - `cuda_id` (integer) ------ idx of GPU.
   - `batch_size` (integer) ------ how many insts per batch to load.
   - `shuffle` (True or False) ------ set to True to have the data reshuffled at every epoch.
   - `num_worders` (integer) ------ how many subprocesses to use for data loading. 0 means that the data will be loaded 
@@ -65,8 +66,8 @@
   - `weight_decay` (float) ------ lamda
   - `clip_grad` (True or False) ------ whether to ues util.clip.
   - `clip_grad_max_norm` (float) ------ value of max_norm of grad in util.clip.
-  - `warmup_steps` (integer) ------ warm up steps.
-  - `lr_decay_factor` (float) ------ learning rate decay factor after `warmup_steps`. using `lr = lr**lr_decay_factor` to simulate exponential decay.
+  - `warmup_steps` (integer) ------ warm up steps, if no warm_up, set to `-1`.
+  - `lr_decay_factor` (float) ------ learning rate decay factor after `warmup_steps`. using `lr = lr**lr_decay_factor` to simulate exponential decay. If no lr_decay, set to `1`.
 
   
 ## Constants.py
