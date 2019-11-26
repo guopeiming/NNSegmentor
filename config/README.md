@@ -32,6 +32,7 @@
 
 - [Train]
   - `use_cuda` (True or False) ------ use `cuda` speed up.
+  - `cuda_id` (integer) ------ idx of GPU.
   - `batch_size` (integer) ------ how many insts per batch to load.
   - `shuffle` (True or False) ------ set to True to have the data reshuffled at every epoch.
   - `num_worders` (integer) ------ how many subprocesses to use for data loading. 0 means that the data will be loaded 

@@ -77,6 +77,10 @@ class MyConf(ConfigParser):
         return self.getboolean('Train', 'use_cuda')
 
     @property
+    def cuda_id(self):
+        return self.getint('Train', 'cuda_id')
+
+    @property
     def batch_size(self):
         return self.getint('Train', 'batch_size')
 

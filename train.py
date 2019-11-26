@@ -104,7 +104,7 @@ def main():
     # ========= Preparing Model ========= #
     print("Preparing Model starts...")
     if config.use_cuda and torch.cuda.is_available():
-        config.device = torch.device('cuda:0')
+        config.device = torch.device('cuda:'+str(config.cuda_id))
         print('You will train model in cuda: %d.\n' % config.device.index)
     else:
         config.device = torch.device('cpu')
