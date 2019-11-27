@@ -13,9 +13,10 @@ class CharEncoder(nn.Module):
     """
     submodel of NNTransSegmentor ------ CharEncoder
     """
-    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed,
-                 bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm, dropout_embed, encoder_embed_dim,
-                 dropout_encoder_embed, encoder_lstm_hid_size, dropout_encoder_hid, device):
+    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_dim_no_static, char_embed_max_norm,
+                 pretra_bichar_embed, bichar_embed_num, bichar_embed_dim, bichar_embed_dim_no_static,
+                 bichar_embed_max_norm, dropout_embed, encoder_embed_dim, dropout_encoder_embed, encoder_lstm_hid_size,
+                 dropout_encoder_hid, device):
         super(CharEncoder, self).__init__()
 
         assert pretra_char_embed.shape[0] == char_embed_num and \
@@ -24,19 +25,19 @@ class CharEncoder(nn.Module):
             pretra_bichar_embed.shape[1] == bichar_embed_dim, 'pretrained embeddings shape error.'
 
         self.char_embeddings_static = nn.Embedding.from_pretrained(pretra_char_embed, True, Constants.padId, char_embed_max_norm)
-        self.char_embeddings_no_static = nn.Embedding(char_embed_num, char_embed_dim, Constants.padId, char_embed_max_norm)
+        self.char_embeddings_no_static = nn.Embedding(char_embed_num, char_embed_dim_no_static, Constants.padId, char_embed_max_norm)
 
         self.bichar_embeddings_static = nn.Embedding.from_pretrained(pretra_bichar_embed, True, Constants.padId, bichar_embed_max_norm)
-        self.bichar_embeddings_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim, Constants.padId, bichar_embed_max_norm)
+        self.bichar_embeddings_no_static = nn.Embedding(bichar_embed_num, bichar_embed_dim_no_static, Constants.padId, bichar_embed_max_norm)
 
         self.dropout_embed_layer = nn.Dropout(dropout_embed)
 
         self.embed_compose_l = nn.Sequential(
-            nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
+            nn.Linear(char_embed_dim+char_embed_dim_no_static+bichar_embed_dim+bichar_embed_dim_no_static, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
         self.embed_compose_r = nn.Sequential(
-            nn.Linear((char_embed_dim+bichar_embed_dim)*2, encoder_embed_dim, bias=True),
+            nn.Linear(char_embed_dim+char_embed_dim_no_static+bichar_embed_dim+bichar_embed_dim_no_static, encoder_embed_dim, bias=True),
             nn.Tanh()
         )
 
@@ -75,26 +76,33 @@ class CharEncoder(nn.Module):
             bichar_embeddings_l = self.dropout_embed*torch.cat([bichar_embeddings_l, bichar_embeddings_l_no_static], 2)
             bichar_embeddings_r = self.dropout_embed*torch.cat([bichar_embeddings_r, bichar_embeddings_r_no_static], 2)
 
+        # (seq_len, batch_size, encoder_embed_dim)
+        embeddins_l = self.embed_compose_l(torch.cat([char_embeddings, bichar_embeddings_l], 2))
+        embeddins_r = self.embed_compose_r(torch.cat([char_embeddings, bichar_embeddings_r], 2))
+        if self.training:
+            embeddins_l = self.dropout_encoder_embed_layer(embeddins_l)
+            embeddins_r = self.dropout_encoder_embed_layer(embeddins_r)
+        else:
+            embeddins_l = self.dropout_encoder_embed * embeddins_l
+            embeddins_r = self.dropout_encoder_embed * embeddins_r
+
         h_l, c_l, h_r, c_r = list(map(lambda x: x.squeeze(0).to(self.device), torch.zeros((4, batch_size, self.encoder_lstm_hid_size)).chunk(4, 0)))
-        encoder_output = []
+        lstm_l_hid, lstm_r_hid = [], []
         for step in range(seq_len):
-            embeddins_l = self.embed_compose_l(torch.cat([char_embeddings[step], bichar_embeddings_l[step]], 1))
-            embeddins_r = self.embed_compose_r(torch.cat([char_embeddings[step], bichar_embeddings_r[step]], 1))
-            if self.training:
-                embeddins_l = self.dropout_encoder_embed_layer(embeddins_l)
-                embeddins_r = self.dropout_encoder_embed_layer(embeddins_r)
-            else:
-                embeddins_l = self.dropout_encoder_embed*embeddins_l
-                embeddins_r = self.dropout_encoder_embed*embeddins_r
-            h_l, c_l = self.lstm_l(embeddins_l, (h_l, c_l))  # (batch_size, encoder_lstm_hid_size)
-            h_r, c_r = self.lstm_r(embeddins_r, (h_r, c_r))
+            h_l, c_l = self.lstm_l(embeddins_l[step], (h_l, c_l))  # (batch_size, encoder_lstm_hid_size)
+            h_r, c_r = self.lstm_r(embeddins_r[step], (h_r, c_r))
 
             if self.training:
-                encoder_output.append(self.dropout_encoder_hid_layer(torch.cat([h_l.unsqueeze(0), h_r.unsqueeze(0)], 2)))
+                # (1, batch_size, encoder_lstm_hid_size)
+                lstm_l_hid.append(self.dropout_encoder_hid_layer(h_l).unsqueeze(0))
+                lstm_r_hid.append(self.dropout_encoder_hid_layer(h_r).unsqueeze(0))
             else:
-                encoder_output.append(self.dropout_encoder_hid*torch.cat([h_l.unsqueeze(0), h_r.unsqueeze(0)], 2))
-                # (1, batch_size, encoder_lstm_hid_size*2)
-        return torch.cat(encoder_output, 0)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
+                # (1, batch_size, encoder_lstm_hid_size)
+                lstm_l_hid.append((self.dropout_encoder_hid*h_l).unsqueeze(0))
+                lstm_r_hid.append((self.dropout_encoder_hid*h_r).unsqueeze(0))
+
+        encoder_out = [torch.cat([lstm_l_hid[i], lstm_r_hid[seq_len-i-1]], 2) for i in range(seq_len)]
+        return torch.cat(encoder_out, 0)  # (seq_len, batch_size, encoder_lstm_hid_size*2)
 
     def __init_para(self):
         init.xavier_uniform_(self.char_embeddings_no_static.weight)

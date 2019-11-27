@@ -114,10 +114,12 @@ def main():
     model = ParaNNTranSegmentor(pretra_char_embed,
                                 train_dataset.get_char_vocab_size(),
                                 config.char_embed_dim,
+                                config.char_embed_dim_no_static,
                                 config.char_embed_max_norm,
                                 pretra_bichar_embed,
                                 train_dataset.get_bichar_vocab_size(),
                                 config.bichar_embed_dim,
+                                config.bichar_embed_dim_no_static,
                                 config.bichar_embed_max_norm,
                                 config.dropout_embed,
                                 config.encoder_embed_dim,
@@ -174,7 +176,7 @@ def main():
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'rl': scheduler.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
-                # break
+                break
             if steps % config.valInterval == 0:
                 F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, steps)
                 if F_dev > best_perf[2]:
