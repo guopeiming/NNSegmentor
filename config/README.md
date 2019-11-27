@@ -49,7 +49,9 @@
 
 - [Model]
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
+  - `char_embed_dim_no_static` (integer) ------ char embeddings vector dim, which is fine-tune.
   - `bichar_embed_dim` (integer) ------ bichar embeddings vector dim, remember to alter it when you use pretrained word embeddings.
+  - `bichar_embed_dim_no_staic` (integer) ------ bichar embeddings vector dim, which is fine-tune.
   - `dropout_embed` (float) ------ dropout rate on char and bichar embeddings.
   - `char_embed_max_norm` (float) ------ max norm used in char embeddings layer(nn.Embedding), which is None if set to 0.0.
   - `bichar_embed_max_norm` (float) ------ max norm used in bichar embeddings layer(nn.Embedding), which is None if set to 0.0.

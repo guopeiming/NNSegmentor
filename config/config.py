@@ -129,8 +129,16 @@ class MyConf(ConfigParser):
         return self.getint('Model', 'char_embed_dim')
 
     @property
+    def char_embed_dim_no_static(self):
+        return self.getint('Model', 'char_embed_dim_no_static')
+
+    @property
     def bichar_embed_dim(self):
         return self.getint('Model', 'bichar_embed_dim')
+
+    @property
+    def bichar_embed_dim_no_static(self):
+        return self.getint('Model', 'bichar_embed_dim_no_static')
 
     @property
     def dropout_embed(self):
