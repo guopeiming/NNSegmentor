@@ -90,7 +90,7 @@ class CharEncoder(nn.Module):
         lstm_l_hid, lstm_r_hid = [], []
         for step in range(seq_len):
             h_l, c_l = self.lstm_l(embeddins_l[step], (h_l, c_l))  # (batch_size, encoder_lstm_hid_size)
-            h_r, c_r = self.lstm_r(embeddins_r[step], (h_r, c_r))
+            h_r, c_r = self.lstm_r(embeddins_r[seq_len - 1 - step], (h_r, c_r))
 
             if self.training:
                 # (1, batch_size, encoder_lstm_hid_size)
