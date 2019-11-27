@@ -17,15 +17,16 @@ class ParaNNTranSegmentor(nn.Module):
     ParaNNTranSegmentor
     """
 
-    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm, pretra_bichar_embed,
-                 bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm, dropout_embed, encoder_embed_dim,
-                 dropout_encoder_embed, encoder_lstm_hid_size, dropout_encoder_hid, subword_lstm_hid_size,
-                 word_lstm_hid_size, device):
+    def __init__(self, pretra_char_embed, char_embed_num, char_embed_dim, char_embed_dim_no_static, char_embed_max_norm,
+                 pretra_bichar_embed, bichar_embed_num, bichar_embed_dim, bichar_embed_dim_no_static,
+                 bichar_embed_max_norm, dropout_embed, encoder_embed_dim, dropout_encoder_embed, encoder_lstm_hid_size,
+                 dropout_encoder_hid, subword_lstm_hid_size, word_lstm_hid_size, device):
         super(ParaNNTranSegmentor, self).__init__()
 
-        self.char_encoder = CharEncoder(pretra_char_embed, char_embed_num, char_embed_dim, char_embed_max_norm,
-                                        pretra_bichar_embed, bichar_embed_num, bichar_embed_dim, bichar_embed_max_norm,
-                                        dropout_embed, encoder_embed_dim, dropout_encoder_embed, encoder_lstm_hid_size,
+        self.char_encoder = CharEncoder(pretra_char_embed, char_embed_num, char_embed_dim, char_embed_dim_no_static,
+                                        char_embed_max_norm, pretra_bichar_embed, bichar_embed_num, bichar_embed_dim,
+                                        bichar_embed_dim_no_static, bichar_embed_max_norm, dropout_embed,
+                                        encoder_embed_dim, dropout_encoder_embed, encoder_lstm_hid_size,
                                         dropout_encoder_hid, device)
         self.subwStackLSTM = SubwordLSTMCell(encoder_lstm_hid_size*2, subword_lstm_hid_size, device)
         self.wordStackLSTM = StackLSTMCell(2*subword_lstm_hid_size, word_lstm_hid_size, device)
