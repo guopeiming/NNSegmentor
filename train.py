@@ -176,7 +176,7 @@ def main():
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'rl': scheduler.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
-                break
+                # break
             if steps % config.valInterval == 0:
                 F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, steps)
                 if F_dev > best_perf[2]:
