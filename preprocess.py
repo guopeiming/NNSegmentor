@@ -1,10 +1,8 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/11 16:48
 # @File : preprocess.py
-# @Last Modify Time : 2019/10/14 20:16
-# @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
-from typing import Dict
-
+# @Last Modify Time : 2019/11/28 20:16
+# @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch
 import argparse
 import unicodedata
@@ -100,7 +98,7 @@ def expand(inst, vocab, item):
 
 def convert_insts(filename, char2id, bichar2id, type_):
     print("\nStart to convert %s text data..." % type_)
-    assert Constants.SEP == 1 and Constants.APP == 0, "SEP and APP can not be changed."
+    assert Constants.SEG == 1 and Constants.APP == 0, "SEG and APP can not be changed."
     insts_char = []
     insts_bichar_l = []
     insts_bichar_r = []
@@ -115,10 +113,10 @@ def convert_insts(filename, char2id, bichar2id, type_):
             inst_char = []
             inst_bichar_l = []
             inst_bichar_r = []
-            gold = [Constants.SEP]
+            gold = [Constants.SEG]
             for i in range(1, len(line)):
                 if line[i] is not ' ':
-                    gold.append(Constants.SEP if line[i-1] is ' ' else Constants.APP)
+                    gold.append(Constants.SEG if line[i - 1] is ' ' else Constants.APP)
             golds.append(gold)
             sum_num += len(gold)
 

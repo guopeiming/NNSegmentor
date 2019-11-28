@@ -1,8 +1,8 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/12 18:18
 # @File : train.py
-# @Last Modify Time : 2019/10/18 08:33
-# @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
+# @Last Modify Time : 2019/11/28 08:33
+# @Contact : guopeiming2016@{qq, gmail, 163}.com
 import os
 import sys
 import time
@@ -10,12 +10,9 @@ import torch
 import argparse
 from config import Constants
 from utils.optim import Optim
-import torch.nn.utils as utils
 from config.config import MyConf
 from utils.model_utils import load_data
 from utils.visualLogger import VisualLogger
-from utils.MyLRScheduler import MyLRScheduler
-from utils.MyLRScheduler import get_lr_scheduler_lambda
 from utils.model_utils import load_pretrained_embeddings
 from model.ParaNNTranSegmentor import ParaNNTranSegmentor
 
@@ -36,8 +33,8 @@ def cal_preformance(pred, golds, criterion, device):
     pred_label = torch.argmax(pred, 2)
     seg_word, char, cor_char, pred_word, golds_word = 0, 0, 0, 0, 0
     for idx in range(seq_len-1, -1, -1):
-        pred_seg_mask = pred_label[:, idx] == Constants.SEP
-        golds_seg_mask = golds[:, idx] == Constants.SEP
+        pred_seg_mask = pred_label[:, idx] == Constants.SEG
+        golds_seg_mask = golds[:, idx] == Constants.SEG
         no_pad_mask = golds[:, idx] != Constants.actionPadId
         seg_word += torch.sum((pred_last_seg_idx == golds_last_seg_idx)[pred_seg_mask * golds_seg_mask]).item()
         pred_last_seg_idx[pred_seg_mask*no_pad_mask] = idx
@@ -45,8 +42,8 @@ def cal_preformance(pred, golds, criterion, device):
 
         char += torch.sum(no_pad_mask).item()
         cor_char += torch.sum((golds[:, idx] - pred_label[:, idx]) == 0).item()
-        pred_word += torch.sum(pred_label[:, idx][no_pad_mask] == Constants.SEP).item()
-        golds_word += torch.sum(golds[:, idx] == Constants.SEP).item()
+        pred_word += torch.sum(pred_label[:, idx][no_pad_mask] == Constants.SEG).item()
+        golds_word += torch.sum(golds[:, idx] == Constants.SEG).item()
         assert seg_word <= pred_word and seg_word <= golds_word, 'evaluation criteria wrong.'
 
     mask = golds != Constants.actionPadId
@@ -134,8 +131,7 @@ def main():
     print(model, end='\n\n\n')
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
-    optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model)
-    scheduler = MyLRScheduler(optimizer.get_optimizer(), get_lr_scheduler_lambda(config.learning_rate, config.warmup_steps, config.lr_decay_factor))
+    optimizer = Optim(config.opti_name, config.learning_rate, config.weight_decay, model, config)
     visual_logger = VisualLogger(config.visual_logger_path)
 
     # ========= Training ========= #
@@ -160,10 +156,7 @@ def main():
             cor_chars += cor_char
 
             loss.backward()
-            if config.clip_grad:
-                utils.clip_grad_norm_(model.parameters(), config.clip_grad_max_norm)
             optimizer.step()
-            scheduler.step()
 
             if steps % config.logInterval == 0:
                 avg_loss = total_loss/chars
@@ -173,7 +166,7 @@ def main():
                 print('[%d/%d], [%d/%d] Loss: %.05f, F: %.05f, P: %.05f, R: %.05f' %
                       (epoch_i+1, config.epoch, batch_i+1, len(train_data), avg_loss, F, P, R))
                 sys.stdout.flush()
-                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'rl': scheduler.get_lr()[0]}
+                scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'lr': optimizer.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
                 # break
