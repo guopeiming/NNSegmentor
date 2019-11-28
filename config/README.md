@@ -63,13 +63,16 @@
   - `word_lstm_hid_size` (integer) ------ hidden state dimension of word_LSTM.
 
 - [Optimizer]
-  - `name` (string) ------ which optimizer to use.
+  - `name` (string) ------ which optimizer to use, you can only choose `{SGD, Adam}`.
   - `learning_rate` (float) ------ learning rate of optimizer.
   - `weight_decay` (float) ------ lamda
   - `clip_grad` (True or False) ------ whether to ues util.clip.
   - `clip_grad_max_norm` (float) ------ value of max_norm of grad in util.clip.
   - `warmup_steps` (integer) ------ warm up steps, if no warm_up, set to `-1`.
   - `lr_decay_factor` (float) ------ learning rate decay factor after `warmup_steps`. using `lr = lr**lr_decay_factor` to simulate exponential decay. If no lr_decay, set to `1`.
+  - `momentum` (float) ------  momentum factor in `SGD`.
+  - `dampening` (float) ------ dampening for momentum in `SGD`.
+  - `nesterov` (True or False) ------ enables Nesterov momentum in `SGD`.
 
   
 ## Constants.py
@@ -78,7 +81,7 @@
 - `padKey` (string) ------ key of pad in vocab. You can not change it.
 - `padId` (integer) ------ id of pad in vocab. You can not change it.
 - `APP` (integer) ------ digital representation of action append. You can not change it.
-- `SEP` (integer) ------ digital representation of action separate. You can not change it.
+- `SEG` (integer) ------ digital representation of action separate. You can not change it.
 - `actionPadId` (integer) ------ id of action pad.
 - `EPSILON` (float) ------ threshold for subtraction comparision.
 - `TEST_OOV_NUM` (integer) ------ the number for testing the number of oov in pretrained embeddings.

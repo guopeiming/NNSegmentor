@@ -1,8 +1,8 @@
 # @Author : guopeiming
 # @Datetime : 2019/10/11 17:40
 # @File : config.py
-# @Last Modify Time : 2019/11/06 19:03
-# @Contact : 1072671422@qq.com, guopeiming2016@{gmail.com, 163.com}
+# @Last Modify Time : 2019/11/28 19:03
+# @Contact : guopeiming2016@{qq, gmail, 163}.com
 from config import Constants
 from configparser import ConfigParser
 
@@ -207,4 +207,16 @@ class MyConf(ConfigParser):
     @property
     def lr_decay_factor(self):
         return self.getfloat('Optimizer', 'lr_decay_factor')
+
+    @property
+    def momentum(self):
+        return self.getfloat('Optimizer', 'momentum')
+
+    @property
+    def dampening(self):
+        return self.getfloat('Optimizer', 'dampening')
+
+    @property
+    def nesterov(self):
+        return self.getboolean('Optimizer', 'nesterov')
 
