@@ -66,7 +66,6 @@ def eval_model(model, criterion, dev_data, test_data, device, visual_logger, sta
 def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
     for insts, golds in data:
-        insts = list(map(lambda x: x.to(device), insts))
         golds = golds.to(device)
 
         pred = model(insts)
