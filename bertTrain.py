@@ -13,7 +13,6 @@ from utils.optim import Optim
 from config.config import MyConf
 from utils.bert_utils import load_data
 from utils.visualLogger import VisualLogger
-from utils.model_utils import load_pretrained_embeddings
 from model.ParaNNTranSegmentor import ParaNNTranSegmentor
 
 
