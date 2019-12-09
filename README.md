@@ -40,7 +40,7 @@ If you use `pip`, we strongly recommend you to create an virtual python3.6 envir
 
 - Train  
   ```bash
-  python ./train.py
+  python train.py
   ```
  
 ### Author
