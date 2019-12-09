@@ -9,7 +9,7 @@ The following methods are provided to install dependencies:
 If you use `pip`, we strongly recommend you to create an virtual python3.6 environment by `conda` or `virtualenv`, where NNTranSegmentor is installed after.
 - conda
   ```bash
-    conda env create -f environment.yml
+  conda env create -f environment.yml
   ```
 - pip
   ```bash
@@ -18,6 +18,14 @@ If you use `pip`, we strongly recommend you to create an virtual python3.6 envir
 
 ### Network Structure
 ![](networkV1.0.png)
+
+### Performance
+| method | F | time |
+| --- | :---: | :---: |
+|character-only| 95.0 | 0.75h
+|add-word_compose| 95.3 | 9.3h
+|add-batch_training| 95.3 | 2.1h
+
 
 ### Usage
 - Preprocess  
