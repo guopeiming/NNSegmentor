@@ -13,7 +13,7 @@ from utils.optim import Optim
 from config.config import MyConf
 from utils.bert_utils import load_data
 from utils.visualLogger import VisualLogger
-from model.ParaNNTranSegmentor import ParaNNTranSegmentor
+from model.BertWordSegmentor import BertWordSegmentor
 
 
 def parse_args():
@@ -106,7 +106,7 @@ def main():
         config.device = torch.device('cpu')
         print('GPU is not available, use CPU default.\n')
 
-    model = ParaNNTranSegmentor(config.device)
+    model = BertWordSegmentor(config.device)
     if config.use_cuda and torch.cuda.is_available():
         model.to(config.device)
     print(model, end='\n\n\n')
