@@ -68,7 +68,7 @@ def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
     for insts, golds in data:
         golds = golds.to(device)
 
-        pred = model(insts)
+        pred = model(insts, golds)
         loss, golds_word, pred_word, seg_word, char, cor_char = cal_preformance(pred, golds, criterion, device)
         total_loss += loss.item()
         golds_words += golds_word
