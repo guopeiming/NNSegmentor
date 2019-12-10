@@ -32,4 +32,4 @@ class BertWordSegmentor(nn.Module):
 
     def __init_para(self):
         nn.init.xavier_uniform_(self.cls.weight)
-        nn.init.xavier_uniform_(self.cls.bias)
+        nn.init.uniform_(self.cls.bias)
