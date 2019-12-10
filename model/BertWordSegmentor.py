@@ -24,7 +24,7 @@ class BertWordSegmentor(nn.Module):
         insts = [self.tokenizer.encode(inst) + [self.tokenizer.pad_token_id]*(seq_len-(len(inst)+1)//2) for inst in insts]
         insts = torch.tensor(insts).to(self.device)
         assert insts.shape[0] == batch_size and insts.shape[1] == seq_len+2, 'insts tokenizing goes wrong.'
-        attention_mask = torch.ones((batch_size, seq_len+2), dtype=torch.long)
+        attention_mask = torch.ones((batch_size, seq_len+2), dtype=torch.long).to(self.device)
         attention_mask[:, 2:] = golds != Constants.actionPadId
         hidden_state = self.bert_model(insts, attention_mask=attention_mask)[0]  # (batch_size, seq_len+2, hidden_size)
         pred = self.cls(hidden_state)  # (batch_size, seq_len+2, 2)
@@ -33,3 +33,4 @@ class BertWordSegmentor(nn.Module):
     def __init_para(self):
         nn.init.xavier_uniform_(self.cls.weight)
         nn.init.uniform_(self.cls.bias)
+
