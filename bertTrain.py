@@ -124,7 +124,6 @@ def main():
             golds = golds.to(config.device)
             model.train()
 
-            optimizer.zero_grad()
             pred = model(insts, golds)
             loss, golds_word, pred_word, seg_word, char, cor_char = cal_preformance(pred, golds, criterion, config.device)
             total_loss += loss.item()
@@ -135,8 +134,10 @@ def main():
             cor_chars += cor_char
 
             loss.backward()
-            optimizer.step()
 
+            if steps % config.accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
             if steps % config.logInterval == 0:
                 avg_loss = total_loss/chars
                 P = seg_words/pred_words
