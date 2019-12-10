@@ -101,6 +101,10 @@ class MyConf(ConfigParser):
         return self.getint('Train', 'epoch')
 
     @property
+    def accumulation_steps(self):
+        return self.getint('Train', 'accumulation_steps')
+
+    @property
     def logInterval(self):
         return self.getint('Train', 'logInterval')
 
