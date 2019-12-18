@@ -31,6 +31,7 @@
   is valid when `bichar_gen_oov_mode` is `uniform`.
 
 - [Train]
+  - `seed` (integer) ------ seed of random.
   - `use_cuda` (True or False) ------ use `cuda` speed up.
   - `cuda_id` (integer) ------ idx of GPU.
   - `batch_size` (integer) ------ how many insts per batch to load.

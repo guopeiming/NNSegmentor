@@ -7,7 +7,9 @@ import os
 import sys
 import time
 import torch
+import random
 import argparse
+import numpy as np
 from config import Constants
 from utils.optim import Optim
 from config.config import MyConf
@@ -23,6 +25,13 @@ def parse_args():
     args = parser.parse_args()
     config = MyConf(args.config)
     return config
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 def cal_preformance(pred, golds, criterion, device):
@@ -89,6 +98,7 @@ def eval_dataset(model, criterion, data, device, typ, visual_logger, stamp):
 
 def main():
     config = parse_args()
+    set_seed(config.seed)
 
     # ========= Loading Dataset ========= #
     print(config)

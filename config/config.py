@@ -73,6 +73,10 @@ class MyConf(ConfigParser):
         return self.get('Embed', 'bichar_gen_oov_mode')
 
     @property
+    def seed(self):
+        return self.getint('Train', 'seed')
+
+    @property
     def use_cuda(self):
         return self.getboolean('Train', 'use_cuda')
 
