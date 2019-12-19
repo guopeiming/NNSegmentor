@@ -49,7 +49,7 @@ class Optim:
         if not isinstance(idxs, Iterable):
             idxs = [idxs]
 
-        for name, model_layer in self.model.bert.encoder.layer.named_children():
+        for name, model_layer in self.model.bert_model.encoder.layer.named_children():
             if name not in idxs:
                 continue
             for param in model_layer.parameters():
