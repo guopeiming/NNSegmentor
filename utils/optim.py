@@ -4,6 +4,7 @@
 # @Last Modify Time : 2019/11/28 19:03
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch.optim
+from collections.abc import Iterable
 import torch.nn.utils as utils
 from utils.MyLRScheduler import MyLRScheduler, get_lr_scheduler_lambda
 
@@ -43,4 +44,14 @@ class Optim:
 
     def get_lr(self):
         return self.scheduler.get_lr()
+
+    def set_freeze_by_idxs(self, idxs, free):
+        if not isinstance(idxs, Iterable):
+            idxs = [idxs]
+
+        for name, model_layer in self.model.bert.encoder.layer.named_children():
+            if name not in idxs:
+                continue
+            for param in model_layer.parameters():
+                param.requires_grad_(not free)
 
