@@ -130,9 +130,9 @@ def main():
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars, steps = 0.0, 0, 0, 0, 0, 0, 1
     best_perf = [0, 0, 0., 0.]  # (epoch_idx, batch_idx, F_dev, F_test)
     optimizer.set_freeze_by_idxs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], True)
-    torch.cuda.empty_cache()
     for epoch_i in range(config.epoch):
         for batch_i, [insts, golds] in enumerate(train_data):
+            torch.cuda.empty_cache()
             golds = golds.to(config.device)
             model.train()
 
@@ -178,7 +178,6 @@ def main():
                 modelpath = os.path.join(config.save_path, filename)
                 torch.save(model, modelpath)
             steps += 1
-        torch.cuda.empty_cache()
     exe_time = time.time() - start
     print('Executing time: %dh:%dm:%ds.' % (exe_time/3600, (exe_time/60) % 60, exe_time % 60))
     visual_logger.close()
