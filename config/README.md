@@ -67,6 +67,7 @@
 - [Optimizer]
   - `name` (string) ------ which optimizer to use, you can only choose `{SGD, Adam}`.
   - `learning_rate` (float) ------ learning rate of optimizer.
+  - `fine_tune_lr` (float) ------ fine_tune learning rate of bert.
   - `weight_decay` (float) ------ lamda
   - `clip_grad` (True or False) ------ whether to ues util.clip.
   - `clip_grad_max_norm` (float) ------ value of max_norm of grad in util.clip.

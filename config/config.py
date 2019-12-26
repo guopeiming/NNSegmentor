@@ -197,6 +197,10 @@ class MyConf(ConfigParser):
         return self.getfloat('Optimizer', 'learning_rate')
 
     @property
+    def fine_tune_lr(self):
+        return self.getfloat('Optimizer', 'fine_tune_lr')
+
+    @property
     def weight_decay(self):
         return self.getfloat('Optimizer', 'weight_decay')
 
