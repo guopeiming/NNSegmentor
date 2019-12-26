@@ -4,8 +4,9 @@
 # @Last Modify Time : 2019/11/28 19:03
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch.optim
-from collections.abc import Iterable
 import torch.nn.utils as utils
+from collections.abc import Iterable
+from model.BertWordSegmentor import BertWordSegmentor
 from utils.MyLRScheduler import MyLRScheduler, get_lr_scheduler_lambda
 
 
@@ -15,10 +16,14 @@ class Optim:
     """
     name_list = ['Adam', 'SGD']
 
-    def __init__(self, name, learning_rate, weight_decay, model, config):
+    def __init__(self, name, learning_rate, fine_tune_lr, weight_decay, model: BertWordSegmentor, config):
         assert name in Optim.name_list, 'optimizer name is wrong.'
         if name == 'Adam':
-            self._optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+            self._optimizer = torch.optim.Adam([
+                                                    {'params': model.lstm.parameters(), 'lr': learning_rate},
+                                                    {'params': model.cls.parameters(), 'lr': learning_rate},
+                                                    {'params': model.bert_model.parameters(), 'lr': fine_tune_lr}
+                                                ], weight_decay=weight_decay)
         if name == 'SGD':
             self._optimizer = torch.optim.SGD(model.parameters(), learning_rate, config.momentum, config.dampening,
                                               weight_decay, config.nesterov)
@@ -54,4 +59,12 @@ class Optim:
                 continue
             for param in model_layer.parameters():
                 param.requires_grad_(not free)
+
+    def freeze_pooler(self, free=True):
+        for param in self.model.bert_model.pooler.parameters():
+            param.requires_grad_(not free)
+
+    def free_embeddings(self, free=True):
+        for param in self.model.bert_model.embeddings.parameters():
+            param.requires_grad_(not free)
 
