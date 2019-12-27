@@ -50,6 +50,7 @@
   - `visual_logger_path` (path) ------ path for visual logger.
 
 - [Model]
+  - `is_stack` (True or False) ------ whether to add word stack layer to model.
   - `char_embed_dim` (integer) ------ char embeddings vector dim, remember to alter it when you use pretrained char embeddings.
   - `char_embed_dim_no_static` (integer) ------ char embeddings vector dim, which is fine-tune.
   - `bichar_embed_dim` (integer) ------ bichar embeddings vector dim, remember to alter it when you use pretrained word embeddings.

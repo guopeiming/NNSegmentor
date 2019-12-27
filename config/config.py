@@ -1,7 +1,4 @@
 # @Author : guopeiming
-# @Datetime : 2019/10/11 17:40
-# @File : config.py
-# @Last Modify Time : 2019/11/28 19:03
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 from config import Constants
 from configparser import ConfigParser
@@ -131,6 +128,9 @@ class MyConf(ConfigParser):
     @property
     def visual_logger_path(self):
         return self.get('Train', 'visual_logger_path')
+    @property
+    def is_stack(self):
+        return self.getboolean('Model', 'is_stack')
 
     @property
     def char_embed_dim(self):
