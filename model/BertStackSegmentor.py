@@ -2,15 +2,16 @@
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch
 import torch.nn as nn
+from typing import List
 from config import Constants
 from transformers import BertTokenizer, BertModel
 from model.StackLSTMCell import StackLSTMCell
 from model.SubwordLSTMCell import SubwordLSTMCell
 
 
-class BertFreezeSegmentor(nn.Module):
+class BertStackSegmentor(nn.Module):
     def __init__(self, device):
-        super(BertFreezeSegmentor, self).__init__()
+        super(BertStackSegmentor, self).__init__()
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
         self.bert_model = BertModel.from_pretrained('bert-base-chinese')
 
@@ -25,12 +26,8 @@ class BertFreezeSegmentor(nn.Module):
 
     def forward(self, insts, golds):
         batch_size, seq_len = golds.shape
-        insts = [self.tokenizer.encode(inst) + [self.tokenizer.pad_token_id]*(seq_len-(len(inst)+1)//2) for inst in insts]
-        insts = torch.tensor(insts).to(self.device)
-        assert insts.shape[0] == batch_size and insts.shape[1] == seq_len+2, 'insts tokenizing goes wrong.'
-        attention_mask = torch.ones((batch_size, seq_len+2), dtype=torch.long).to(self.device)
-        attention_mask[:, 2:] = golds != Constants.actionPadId
-        hidden_state = self.bert_model(insts, attention_mask=attention_mask)[0][:, 1:seq_len+1, :]  # (batch_size, seq_len, hidden_size)
+        insts, mask = self.__tokenize(batch_size, seq_len, insts, golds)
+        hidden_state = self.bert_model(insts, attention_mask=mask)[0][:, 1:seq_len + 1, :]  # (batch_size, seq_len, hidden_size)
         lstm_output, _ = self.lstm(hidden_state)  # (batch_size, seq_len, 768*2)
 
         self.subwStackLSTM.init_stack(2 * seq_len + 2, batch_size)
@@ -54,8 +51,14 @@ class BertFreezeSegmentor(nn.Module):
             pred.append(output.unsqueeze(1))
         return torch.cat(pred, 1)  # (batch_size, seq_len, 2)
 
-        # pred = self.cls(lstm_output)  # (batch_size, seq_len, 2)
-        # return pred  # (batch_size, seq_len, 2)
+    def __tokenize(self, batch_size: int, seq_len: int, insts: List[str], golds: torch.Tensor):
+        insts = [self.tokenizer.encode(inst) + [self.tokenizer.pad_token_id] * (seq_len - (len(inst) + 1) // 2) for inst
+                 in insts]
+        insts = torch.tensor(insts).to(self.device)
+        assert insts.shape[0] == batch_size and insts.shape[1] == seq_len + 2, 'insts tokenizing goes wrong.'
+        mask = torch.ones((batch_size, seq_len + 2), dtype=torch.long).to(self.device)
+        mask[:, 2:] = golds != Constants.actionPadId
+        return insts, mask
 
     def __init_para(self):
         nn.init.xavier_uniform_(self.cls.weight)

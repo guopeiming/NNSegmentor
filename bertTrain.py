@@ -1,7 +1,4 @@
 # @Author : guopeiming
-# @Datetime : 2019/12/09 15:18
-# @File : bertTrain.py
-# @Last Modify Time : 2019/12/09 15:18
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import os
 import sys
@@ -15,7 +12,8 @@ from utils.optim import Optim
 from config.config import MyConf
 from utils.bert_utils import load_data
 from utils.visualLogger import VisualLogger
-from model.BertWordSegmentor import BertWordSegmentor
+from model.BertCharSegmentor import BertCharSegmentor
+from model.BertStackSegmentor import BertStackSegmentor
 
 
 def parse_args():
@@ -116,7 +114,7 @@ def main():
         config.device = torch.device('cpu')
         print('GPU is not available, use CPU default.\n')
 
-    model = BertWordSegmentor(config.device)
+    model = BertStackSegmentor(config.device) if config.is_stack else BertCharSegmentor(config.device)
     if config.use_cuda and torch.cuda.is_available():
         model.to(config.device)
     print(model, end='\n\n\n')
