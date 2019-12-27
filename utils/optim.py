@@ -1,12 +1,10 @@
 # @Author : guopeiming
-# @Datetime : 2019/10/18 08:33
-# @File : optim.py
-# @Last Modify Time : 2019/11/28 19:03
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch.optim
 import torch.nn.utils as utils
 from collections.abc import Iterable
-from model.BertWordSegmentor import BertWordSegmentor
+from config.Constants import bertAttr
+from model.BertCharSegmentor import BertCharSegmentor
 from utils.MyLRScheduler import MyLRScheduler, get_lr_scheduler_lambda
 
 
@@ -16,16 +14,17 @@ class Optim:
     """
     name_list = ['Adam', 'SGD']
 
-    def __init__(self, name, learning_rate, fine_tune_lr, weight_decay, model: BertWordSegmentor, config):
-        assert name in Optim.name_list, 'optimizer name is wrong.'
-        if name == 'Adam':
-            self._optimizer = torch.optim.Adam([
-                                                    {'params': model.lstm.parameters(), 'lr': learning_rate},
-                                                    {'params': model.cls.parameters(), 'lr': learning_rate},
-                                                    {'params': model.bert_model.parameters(), 'lr': fine_tune_lr}
-                                                ], weight_decay=weight_decay)
-        if name == 'SGD':
-            self._optimizer = torch.optim.SGD(model.parameters(), learning_rate, config.momentum, config.dampening,
+    def __init__(self, optim_name, learning_rate, fine_tune_lr, weight_decay, model: BertCharSegmentor, config):
+        assert optim_name in Optim.name_list, 'optimizer name is wrong.'
+
+        params_list = []
+        for name, child in model.named_children():
+            params_list.append({'params': child.parameters(), 'lr': fine_tune_lr if bertAttr in name else learning_rate})
+
+        if optim_name == 'Adam':
+            self._optimizer = torch.optim.Adam(params_list, weight_decay=weight_decay)
+        if optim_name == 'SGD':
+            self._optimizer = torch.optim.SGD(params_list, learning_rate, config.momentum, config.dampening,
                                               weight_decay, config.nesterov)
 
         self.model = model
