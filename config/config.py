@@ -189,6 +189,14 @@ class MyConf(ConfigParser):
         return self.getint('Model', 'word_lstm_hid_size')
 
     @property
+    def freeze_bert(self):
+        return self.getboolean('Model', 'freeze_bert')
+
+    @property
+    def freeze_bert_layers(self):
+        return self.getint('Model', 'freeze_bert_layers')
+
+    @property
     def opti_name(self):
         return self.get('Optimizer', 'name')
 

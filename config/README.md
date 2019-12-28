@@ -64,6 +64,8 @@
   - `dropout_encoder_hid` (float) ------ dropout rate on output of encoder.
   - `subword_lstm_hid_size` (integer) ------ hidden state dimension of subword_LSTM.
   - `word_lstm_hid_size` (integer) ------ hidden state dimension of word_LSTM.
+  - `freeze_bert` (True or False) ------ whether to freeze bert.
+  - `freeze_bert_layers` (integer) ------ the number of layers of frozen bert.
 
 - [Optimizer]
   - `name` (string) ------ which optimizer to use, you can only choose `{SGD, Adam}`.
