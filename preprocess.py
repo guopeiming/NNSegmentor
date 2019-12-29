@@ -1,7 +1,4 @@
 # @Author : guopeiming
-# @Datetime : 2019/10/11 16:48
-# @File : preprocess.py
-# @Last Modify Time : 2019/11/28 20:16
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch
 import argparse

@@ -1,7 +1,4 @@
 # @Author : guopeiming
-# @Datetime : 2019/10/12 18:18
-# @File : train.py
-# @Last Modify Time : 2019/11/28 08:33
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import os
 import sys
