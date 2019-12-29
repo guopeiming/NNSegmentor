@@ -120,7 +120,7 @@ def main():
     print(model, end='\n\n\n')
 
     criterion = torch.nn.CrossEntropyLoss(reduction='sum').to(config.device)
-    optimizer = Optim(config.opti_name, config.learning_rate, config.fine_tune_lr, config.weight_decay, model, config)
+    optimizer = Optim(model, config)
     visual_logger = VisualLogger(config.visual_logger_path)
 
     # ========= Training ========= #
@@ -128,12 +128,12 @@ def main():
     start = time.time()
     total_loss, golds_words, pred_words, seg_words, chars, cor_chars, steps = 0.0, 0, 0, 0, 0, 0, 1
     best_perf = [0, 0, 0., 0.]  # (epoch_idx, batch_idx, F_dev, F_test)
-    optimizer.set_freeze_by_idxs([str(num) for num in range(0, 12)], True)
-    optimizer.free_embeddings()
-    optimizer.freeze_pooler()
+    if config.freeze_bert:
+        optimizer.set_freeze_by_idxs([str(num) for num in range(0, config.freeze_bert_layers)], True)
+        optimizer.free_embeddings()
+        optimizer.freeze_pooler()
     for epoch_i in range(config.epoch):
         for batch_i, [insts, golds] in enumerate(train_data):
-            # torch.cuda.empty_cache()
             golds = golds.to(config.device)
             model.train()
 
@@ -162,6 +162,7 @@ def main():
                 scal = {'Loss': avg_loss, 'F': F, 'P': P, 'R': R, 'lr': optimizer.get_lr()[0]}
                 visual_logger.visual_scalars(scal, steps, 'train')
                 total_loss, golds_words, pred_words, seg_words, chars, cor_chars = 0.0, 0, 0, 0, 0, 0
+                torch.cuda.empty_cache()
                 # break
             if steps % config.valInterval == 0:
                 F_dev, F_test = eval_model(model, criterion, dev_data, test_data, config.device, visual_logger, steps)

@@ -1,7 +1,4 @@
 # @Author : guopeiming
-# @Datetime : 2019/12/09 15:18
-# @File : bert_utils.py
-# @Last Modify Time : 2019/12/09 15:18
 # @Contact : guopeiming2016@{qq, gmail, 163}.com
 import torch
 from config import Constants
