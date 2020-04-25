@@ -38,6 +38,18 @@ class MyConf(ConfigParser):
         return self.get('Data', 'data_path')
 
     @property
+    def dict_data_path(self):
+        return self.get('Data', 'dict_data_path')
+
+    @property
+    def logits_path(self):
+        return self.get('Data', 'logits_path')
+
+    @property
+    def cache_3gram_path(self):
+        return self.get('Data', 'cache_3gram_path')
+
+    @property
     def pretrained_embed_char(self):
         return self.getboolean('Embed', 'pretrained_embed_char')
 
@@ -80,6 +92,10 @@ class MyConf(ConfigParser):
     @property
     def cuda_id(self):
         return self.getint('Train', 'cuda_id')
+
+    @property
+    def distillLambda(self):
+        return self.getfloat('Train', 'distillLambda')
 
     @property
     def batch_size(self):
