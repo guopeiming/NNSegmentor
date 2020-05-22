@@ -17,7 +17,7 @@ If you use `pip`, we strongly recommend you to create an virtual python3.6 envir
   ```
 
 ### Network Structure
-![](https://github.com/guopeiming/NNSegmentor/blob/master/networkV1.0.png)
+![](https://github.com/guopeiming/NNSegmentor/raw/master/networkV1.0.png)
 
 ### Performance
 | method | F | time |
