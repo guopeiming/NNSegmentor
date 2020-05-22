@@ -24,6 +24,9 @@ class Optim:
             if bertAttr in name:
                 params_list.append({'params': child.parameters(), 'lr': config.fine_tune_lr})
                 lr_lambdas.append(get_lr_scheduler_lambda(config.fine_tune_lr, config.warmup_steps, config.lr_decay_factor))
+            elif 'trans' in name:
+                params_list.append({'params': child.parameters(), 'lr': 0.0002})
+                lr_lambdas.append(get_lr_scheduler_lambda(0.0002, config.warmup_steps, config.lr_decay_factor))
             else:
                 params_list.append({'params': child.parameters(), 'lr': config.learning_rate})
                 lr_lambdas.append(get_lr_scheduler_lambda(config.learning_rate, config.warmup_steps, config.lr_decay_factor))
