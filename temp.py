@@ -1,5 +1,7 @@
 import time
 import torch
+import gc
+import torch.nn as nn
 import numpy as np
 import unicodedata
 from typing import List, Set
@@ -191,7 +193,7 @@ def get_golds(filename: str):
 
 # if __name__ == '__main__':  # 生成字典向量 数据集
 #     dictn = set()
-#     with open('./data/weibo/nlpcc2016-word-seg-train.dat', encoding='utf-8') as file1, open('./data/weibo/nlpcc2016-wordseg-dev.dat', encoding='utf-8') as file2, open('./data/weibo/nlpcc2016-wordseg-dev.dat', encoding='utf-8') as file3:
+#     with open('./data/ctb60/train.ctb60.hwc.seg', encoding='utf-8') as file1, open('./data/ctb60/dev.ctb60.hwc.seg', encoding='utf-8') as file2, open('./data/ctb60/test.ctb60.hwc.seg', encoding='utf-8') as file3:
 #         files = [file1, file2, file3]
 #         for file in files:
 #             for inst in file:
@@ -218,6 +220,87 @@ def get_golds(filename: str):
 #     plt.xlabel('CNN kernel size')
 #     plt.ylabel('F1 score')
 #     plt.show()
+
+def build_embed():
+    model_param = torch.load('./model/save/ctb60_dict_final.pt')
+    from transformers import BertTokenizer, BertModel
+    model = BertModel.from_pretrained('bert-base-chinese')
+    mlp = nn.Sequential(
+        nn.Linear(3 * 768, 768),
+        nn.ReLU()
+    )
+    tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
+    model.load_state_dict(model_param['bert_model'])
+    mlp.load_state_dict(model_param['mlp'])
+    model = model.to(torch.device('cuda'))
+    mlp = mlp.to(torch.device('cuda'))
+    model.eval()
+    mlp.eval()
+    full3gram = torch.load('./3gramfull.pt')
+    insts = []
+    temp = []
+    print(len(full3gram))
+    embeddings = dict()
+    for num, item in tqdm(enumerate(full3gram, start=1)):
+        if len(item) == 3:
+            insts.append(tokenizer.encode(' '.join([char for char in item])))
+            temp.append(item)
+        elif len(item) == 1:
+            insts.append([tokenizer.mask_token_id] + tokenizer.encode(item) + [tokenizer.pad_token_id])
+            temp.append(item)
+        else:
+            print('error!!!')
+        if num % 64 == 0 or num == len(full3gram):
+            insts_tensor = torch.tensor(insts).to('cuda')
+            with torch.no_grad():
+                bert_out = model(insts_tensor)[0][:, 1:4, :].view(-1, 3 * 768)
+                mlp_out = mlp(bert_out)
+            for i, key in enumerate(temp):
+                embeddings[key] = mlp_out[i].cpu().tolist()
+            insts = []
+            temp = []
+    return embeddings
+
+#
+# if __name__ == '__main__':
+#     model_param = torch.load('./model/save/ctb60_dict_final.pt')
+#     torch.save({'dropo': model_param['dropo'], 'cnn': model_param['cnn'], 'cls': model_param['cls']}, './model.pt')
+#     from model.Bert3GramDict import Bert3GramDict
+#     model = Bert3GramDict(torch.device('cuda:0'), './data/ctb60/ctb60.3gram.pt')
+#     model.bert_model.load_state_dict(model_param['bert_model'])
+#     model.cnn.load_state_dict(model_param['cnn'])
+#     model.mlp.load_state_dict(model_param['mlp'])
+#     model.cls.load_state_dict(model_param['cls'])
+#     model.dropout1.load_state_dict(model_param['dropo'])
+#     model.to('cuda')
+#     model.eval()
+#     data = [[[1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1], [1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1]], [[1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1], [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]]
+#
+#     insts = ['中 国 进 出 口 银 行 与 中 国 银 行 加 强 合 作', '天 津 大 学 智 能 与 计 算 学 部']
+#     dict_data = torch.tensor(data, dtype=torch.float).to('cuda')
+#     golds = torch.tensor([[1,0,1,0,0,1,0,1,1,0,1,0,1,0,1,0], [1,0,1,0,1,0,1,1,0,1,0,0,0,0,0,0]]).to('cuda')
+#     res = model(insts, golds, dict_data)
+#     print(res.argmax(2))
+
+
+    # dcit_3gram = torch.load('./data/ctb60/ctb60.3gram.pt')
+    # word_set = set()
+    # with open('./data/ctb60/train.ctb60.hwc.seg', encoding='utf-8') as file:
+    #     for line in file:
+    #         line = unicodedata.normalize('NFKC', line).strip().replace(' ', '')
+    #         for char in line:
+    #             dcit_3gram.add(char)
+    # torch.save(dcit_3gram, './3gramfull.pt')
+    # with open('./data/ctb60/ctb60.dictionary.txt', encoding='utf-8', mode='r') as f:
+    #     for line in f:
+    #         word_set.add(line.strip())
+    # torch.save(word_set, './dictionary.pt')
+    # print(len(list(word_set)[0]))
+
+# if __name__ == '__main__':
+#     dictn = torch.load('./djangoWeb/NNSegmentor/dictionary.pt')
+#     print(fun('./a.txt', dictn))
+
 
 
 
