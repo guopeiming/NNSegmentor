@@ -52,6 +52,7 @@ class Segmentor(nn.Module):
             elif inst[i] in self.embeddings2:
                 res.append(self.embeddings2[inst[i]])
             else:
+                res.append([0.]*768)
                 print('error')
         return torch.tensor(res).to('cuda:0')
 

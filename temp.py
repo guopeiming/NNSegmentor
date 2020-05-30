@@ -299,7 +299,13 @@ def build_embed():
 
 # if __name__ == '__main__':
 #     dictn = torch.load('./djangoWeb/NNSegmentor/dictionary.pt')
-#     print(fun('./a.txt', dictn))
+#     dictn.add('院士')
+#     dictn.add('抗击')
+#     dictn.add('新冠')
+#     dictn.add('疫情')
+#     torch.save(dictn, './djangoWeb/NNSegmentor/dictionary.pt')
+    # print('新冠' in dictn)
+    # print(fun('./a.txt', dictn))
 
 
 
